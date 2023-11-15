@@ -1,57 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Velocidade do Acelerômetro com Filtro</title>
+  <meta charset="UTF-8">
+  <title>Velocidade do Acelerômetro</title>
 </head>
 <body>
-    <h1>Velocidade (eixo X) em m/s</h1>
-    <div id="velocity">0</div>
-    <button id="startButton">Iniciar Captura de Movimento</button>
+  <h1>Velocidade Total em m/s</h1>
+  <div id="velocity">0</div>
+  <button id="startButton">Iniciar Captura de Movimento</button>
 
-    <script>
-        let velocityX = 0;
-        let lastAx = 0;
-        let alpha = 0.1; // Fator de suavização para o filtro de baixa passagem
-        let lastTime = Date.now();
+  <script>
+      let velocity = 0;
+      let lastTime = Date.now();
 
-        function handleMotion(event) {
-            let currentTime = Date.now();
-            let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
-            lastTime = currentTime;
+      function handleMotion(event) {
+          let currentTime = Date.now();
+          let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
+          lastTime = currentTime;
 
-            let axRaw = event.acceleration.x;
-            // Aplicando um filtro de baixa passagem na aceleração
-            let ax = alpha * axRaw + (1 - alpha) * lastAx;
-            lastAx = ax;
+          let ax = event.acceleration.x / 9.8; // Aceleração em m/s²
+          let ay = event.acceleration.y / 9.8; // Aceleração em m/s²
+          let az = event.acceleration.z / 9.8; // Aceleração em m/s²
 
-            velocityX += ax * deltaTime;
+          velocity += Math.sqrt(ax * ax + ay * ay + az * az) * deltaTime; // Velocidade em m
 
-            // Opção para resetar a velocidade se for muito baixa
-            if (Math.abs(velocityX) < 0.1) {
-                velocityX = 0;
-            }
+          document.getElementById('velocity').textContent = velocity.toFixed(2);
+      }
 
-            document.getElementById('velocity').textContent = velocityX.toFixed(2);
-        }
-
-        document.getElementById('startButton').addEventListener('click', function() {
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                // Para iOS 13+
-                DeviceMotionEvent.requestPermission()
-                .then(permissionState => {
-                    if (permissionState === 'granted') {
-                        window.addEventListener('devicemotion', handleMotion);
-                    } else {
-                        alert('Permissão para acessar o acelerômetro negada.');
-                    }
-                })
-                .catch(console.error);
-            } else {
-                // Para outros navegadores
-                window.addEventListener('devicemotion', handleMotion);
-            }
-        });
-    </script>
+      document.getElementById('startButton').addEventListener('click', function() {
+          if (typeof DeviceMotionEvent.requestPermission === 'function') {
+              // Para iOS 13+
+              DeviceMotionEvent.requestPermission()
+              .then(permissionState => {
+                 if (permissionState === 'granted') {
+                     window.addEventListener('devicemotion', handleMotion);
+                 } else {
+                     alert('Permissão para acessar o acelerômetro negada.');
+                 }
+              })
+              .catch(console.error);
+          } else {
+              // Para outros navegadores
+              window.addEventListener('devicemotion', handleMotion);
+          }
+      });
+  </script>
 </body>
 </html>
