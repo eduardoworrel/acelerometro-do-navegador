@@ -2,21 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Velocidade com Acelerômetro e Média Móvel</title>
+    <title>Velocidade com Média Móvel por Eixo</title>
 </head>
 <body>
     <br>
-    <h1 id="velocity">Velocidade: 0 m/s</h1>
+    <h1 id="velocityX">Velocidade X: 0 m/s</h1>
+    <h1 id="velocityY">Velocidade Y: 0 m/s</h1>
+    <h1 id="velocityZ">Velocidade Z: 0 m/s</h1>
     <br>
     <button id="startButton">Iniciar Captura de Movimento</button>
 
     <script>
-        let velocity = 0;
+        let velocities = { x: 0, y: 0, z: 0 };
         let lastTime = Date.now();
         const accValues = { x: [], y: [], z: [] };
         const N = 5; // Número de amostras para a média móvel
-        const stationaryThreshold = 0.05; // Limite para considerar o dispositivo como parado
-        let stationaryTime = 0;
+        const movementThreshold = 0.1; // Limiar para detectar movimento significativo
+        const stationaryTimeLimit = 0.5; // Tempo para considerar parado
+        let stationaryTime = { x: 0, y: 0, z: 0 };
 
         function addAccValue(axis, value) {
             accValues[axis].push(value);
@@ -26,6 +29,7 @@
         }
 
         function calculateAverage(axis) {
+            if (accValues[axis].length === 0) return 0;
             return accValues[axis].reduce((sum, val) => sum + val, 0) / accValues[axis].length;
         }
 
@@ -42,30 +46,27 @@
             let avgAy = calculateAverage('y');
             let avgAz = calculateAverage('z');
 
-            // Verifica se o dispositivo está parado
-            let accelerationMagnitude = Math.sqrt(avgAx * avgAx + avgAy * avgAy + avgAz * avgAz);
-            if (accelerationMagnitude < stationaryThreshold) {
-                stationaryTime += deltaTime;
-            } else {
-                stationaryTime = 0; // Resetar o contador de tempo parado se houver movimento
-            }
+            ['x', 'y', 'z'].forEach(axis => {
+                let avgA = axis === 'x' ? avgAx : axis === 'y' ? avgAy : avgAz;
 
-            // Se o dispositivo estiver parado por mais de um certo tempo, zere a velocidade
-            if (stationaryTime > 0.5) { // Considerar parado após meio segundo
-                velocity = 0;
-            } else {
-                // Calcula a velocidade com base na aceleração média
-                velocity += accelerationMagnitude * deltaTime;
-            }
+                if (Math.abs(avgA) < movementThreshold) {
+                    stationaryTime[axis] += deltaTime;
+                    if (stationaryTime[axis] >= stationaryTimeLimit) {
+                        velocities[axis] = 0; // Resetar a velocidade se estiver parado
+                    }
+                } else {
+                    stationaryTime[axis] = 0; // Resetar o tempo estacionário se houver movimento
+                    velocities[axis] += avgA * deltaTime; // Calcular a velocidade
+                }
+            });
 
-            document.getElementById('velocity').textContent = `Velocidade: ${velocity.toFixed(2)} m/s`;
+            document.getElementById('velocityX').textContent = `Velocidade X: ${velocities.x.toFixed(2)} m/s`;
+            document.getElementById('velocityY').textContent = `Velocidade Y: ${velocities.y.toFixed(2)} m/s`;
+            document.getElementById('velocityZ').textContent = `Velocidade Z: ${velocities.z.toFixed(2)} m/s`;
         }
 
         function handleMotionEvent(event) {
-            let ax = event.acceleration.x;
-            let ay = event.acceleration.y;
-            let az = event.acceleration.z;
-            updateVelocity(ax, ay, az);
+            updateVelocity(event.acceleration.x, event.acceleration.y, event.acceleration.z);
         }
 
         function initSensor() {
