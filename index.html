@@ -13,7 +13,7 @@
     <script>
         let velocity = { x: 0, y: 0, z: 0 };
         let lastTime = Date.now();
-        const stationaryThreshold = 0.02; // Limite para considerar o dispositivo como parado
+        const stationaryThreshold = 0.03; // Limite para considerar o dispositivo como parado
 
         function updateTotalVelocity(ax, ay, az) {
             let currentTime = Date.now();
