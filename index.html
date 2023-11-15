@@ -2,61 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Velocidade com Acelerômetro e Giroscópio</title>
+    <title>Velocidade Total com Acelerômetro</title>
 </head>
 <body>
     <br>
-    <h1 id="velocity">0 m/s</h1>
+    <h1 id="totalVelocity">Velocidade Total: 0 m/s</h1>
     <br>
     <button id="startButton">Iniciar Captura de Movimento</button>
 
     <script>
-        let velocity = 0;
+        let velocity = { x: 0, y: 0, z: 0 };
         let lastTime = Date.now();
-        let lastAcceleration = { x: 0, y: 0, z: 0 };
-        const movementThreshold = 0.2; // Limiar para detectar movimento significativo
+        const stationaryThreshold = 0.02; // Limite para considerar o dispositivo como parado
 
-        function handleMotion(event) {
+        function updateTotalVelocity(ax, ay, az) {
             let currentTime = Date.now();
             let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
             lastTime = currentTime;
 
-            let alpha = 0.8; // Fator para suavização da aceleração
-            let ax = alpha * lastAcceleration.x + (1 - alpha) * event.acceleration.x;
-            let ay = alpha * lastAcceleration.y + (1 - alpha) * event.acceleration.y;
-            let az = alpha * lastAcceleration.z + (1 - alpha) * event.acceleration.z;
-            lastAcceleration = { x: ax, y: ay, z: az };
+            // Calculando a velocidade em cada eixo
+            velocity.x += ax * deltaTime;
+            velocity.y += ay * deltaTime;
+            velocity.z += az * deltaTime;
 
-            let accelerationMagnitude = Math.sqrt(ax * ax + ay * ay + az * az);
+            // Calculando a magnitude total da velocidade
+            let totalVelocity = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z);
 
-            if (accelerationMagnitude > movementThreshold) {
-                velocity += accelerationMagnitude * deltaTime; // Calcular velocidade quando em movimento
-            } else {
-                velocity = 0; // Resetar a velocidade se o movimento for insignificante
+            // Se o dispositivo estiver praticamente parado, zere a velocidade
+            if (Math.abs(ax) < stationaryThreshold && Math.abs(ay) < stationaryThreshold && Math.abs(az) < stationaryThreshold) {
+                totalVelocity = 0;
+                velocity.x = 0;
+                velocity.y = 0;
+                velocity.z = 0;
             }
 
-            document.getElementById('velocity').textContent = `${velocity.toFixed(2)} m/s`;
+            document.getElementById('totalVelocity').textContent = `Velocidade Total: ${totalVelocity.toFixed(2)} m/s`;
         }
 
-        function handleOrientation(event) {
-            // Processamento dos dados de rotação (giroscópio)
-            // Esta função pode ser usada para refinar a detecção de movimento
-            // e complementar os dados de aceleração.
+        function handleMotionEvent(event) {
+            let ax = event.acceleration.x;
+            let ay = event.acceleration.y;
+            let az = event.acceleration.z;
+            updateTotalVelocity(ax, ay, az);
+        }
+
+        function initSensor() {
+            if ('LinearAccelerationSensor' in window) {
+                const sensor = new LinearAccelerationSensor();
+                sensor.addEventListener('reading', () => updateTotalVelocity(sensor.x, sensor.y, sensor.z));
+                sensor.start();
+            } else if ('DeviceMotionEvent' in window) {
+                window.addEventListener('devicemotion', handleMotionEvent);
+            } else {
+                alert('Sensores de movimento não são suportados neste dispositivo.');
+            }
         }
 
         document.getElementById('startButton').addEventListener('click', function() {
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                // Para iOS 13+
                 DeviceMotionEvent.requestPermission().then(permissionState => {
                     if (permissionState === 'granted') {
-                        window.addEventListener('devicemotion', handleMotion);
-                        window.addEventListener('deviceorientation', handleOrientation);
+                        initSensor();
                     } else {
                         alert('Permissão para acessar os sensores negada.');
                     }
                 }).catch(console.error);
             } else {
-                window.addEventListener('devicemotion', handleMotion);
-                window.addEventListener('deviceorientation', handleOrientation);
+                // Para outros navegadores
+                initSensor();
             }
         });
     </script>
