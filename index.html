@@ -2,44 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Velocidade de Corrida</title>
+    <title>Velocidade com Acelerômetro e Média Móvel</title>
 </head>
 <body>
     <br>
-    <h1 id="runningSpeed">Velocidade: 0 m/s</h1>
+    <h1 id="velocity">Velocidade: 0 m/s</h1>
     <br>
     <button id="startButton">Iniciar Captura de Movimento</button>
 
     <script>
-        let velocityY = 0;
+        let velocity = 0;
         let lastTime = Date.now();
-        const stationaryThreshold = 0.05; // Limite para considerar o dispositivo como parado
+        const accValues = { x: [], y: [], z: [] };
+        const N = 5; // Número de amostras para a média móvel
 
-        function updateRunningSpeed(ay) {
+        function addAccValue(axis, value) {
+            accValues[axis].push(value);
+            if (accValues[axis].length > N) {
+                accValues[axis].shift(); // Remove o valor mais antigo
+            }
+        }
+
+        function calculateAverage(axis) {
+            return accValues[axis].reduce((sum, val) => sum + val, 0) / accValues[axis].length;
+        }
+
+        function updateVelocity(ax, ay, az) {
             let currentTime = Date.now();
             let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
             lastTime = currentTime;
 
-            // Calculando a velocidade no eixo Y
-            velocityY += ay * deltaTime;
+            // Adiciona os valores atuais e calcula a média para cada eixo
+            addAccValue('x', ax);
+            addAccValue('y', ay);
+            addAccValue('z', az);
+            let avgAx = calculateAverage('x');
+            let avgAy = calculateAverage('y');
+            let avgAz = calculateAverage('z');
 
-            // Se o dispositivo estiver praticamente parado, zere a velocidade
-            if (Math.abs(ay) < stationaryThreshold) {
-                velocityY = 0;
-            }
+            // Calcula a velocidade com base na aceleração média
+            velocity += Math.sqrt(avgAx * avgAx + avgAy * avgAy + avgAz * avgAz) * deltaTime;
 
-            document.getElementById('runningSpeed').textContent = `Velocidade: ${velocityY.toFixed(2)} m/s`;
+            document.getElementById('velocity').textContent = `Velocidade: ${velocity.toFixed(2)} m/s`;
         }
 
         function handleMotionEvent(event) {
-            let ay = event.acceleration.y; // Considerando apenas a aceleração no eixo Y
-            updateRunningSpeed(ay);
+            let ax = event.acceleration.x;
+            let ay = event.acceleration.y;
+            let az = event.acceleration.z;
+            updateVelocity(ax, ay, az);
         }
 
         function initSensor() {
             if ('LinearAccelerationSensor' in window) {
                 const sensor = new LinearAccelerationSensor();
-                sensor.addEventListener('reading', () => updateRunningSpeed(sensor.y));
+                sensor.addEventListener('reading', () => updateVelocity(sensor.x, sensor.y, sensor.z));
                 sensor.start();
             } else if ('DeviceMotionEvent' in window) {
                 window.addEventListener('devicemotion', handleMotionEvent);
