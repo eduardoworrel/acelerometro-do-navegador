@@ -2,54 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Velocidade Total com Acelerômetro</title>
+    <title>Velocidade de Corrida</title>
 </head>
 <body>
     <br>
-    <h1 id="totalVelocity">Velocidade Total: 0 m/s</h1>
+    <h1 id="runningSpeed">Velocidade: 0 m/s</h1>
     <br>
     <button id="startButton">Iniciar Captura de Movimento</button>
 
     <script>
-        let velocity = { x: 0, y: 0, z: 0 };
+        let velocityY = 0;
         let lastTime = Date.now();
         const stationaryThreshold = 0.05; // Limite para considerar o dispositivo como parado
 
-        function updateTotalVelocity(ax, ay, az) {
+        function updateRunningSpeed(ay) {
             let currentTime = Date.now();
             let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
             lastTime = currentTime;
 
-            // Calculando a velocidade em cada eixo
-            velocity.x += ax * deltaTime;
-            velocity.y += ay * deltaTime;
-            velocity.z += az * deltaTime;
-
-            // Calculando a magnitude total da velocidade
-            let totalVelocity = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z);
+            // Calculando a velocidade no eixo Y
+            velocityY += ay * deltaTime;
 
             // Se o dispositivo estiver praticamente parado, zere a velocidade
-            if (Math.abs(ax) < stationaryThreshold && Math.abs(ay) < stationaryThreshold && Math.abs(az) < stationaryThreshold) {
-                totalVelocity = 0;
-                velocity.x = 0;
-                velocity.y = 0;
-                velocity.z = 0;
+            if (Math.abs(ay) < stationaryThreshold) {
+                velocityY = 0;
             }
 
-            document.getElementById('totalVelocity').textContent = `Velocidade Total: ${totalVelocity.toFixed(2)} m/s`;
+            document.getElementById('runningSpeed').textContent = `Velocidade: ${velocityY.toFixed(2)} m/s`;
         }
 
         function handleMotionEvent(event) {
-            let ax = event.acceleration.x;
-            let ay = event.acceleration.y;
-            let az = event.acceleration.z;
-            updateTotalVelocity(ax, ay, az);
+            let ay = event.acceleration.y; // Considerando apenas a aceleração no eixo Y
+            updateRunningSpeed(ay);
         }
 
         function initSensor() {
             if ('LinearAccelerationSensor' in window) {
                 const sensor = new LinearAccelerationSensor();
-                sensor.addEventListener('reading', () => updateTotalVelocity(sensor.x, sensor.y, sensor.z));
+                sensor.addEventListener('reading', () => updateRunningSpeed(sensor.y));
                 sensor.start();
             } else if ('DeviceMotionEvent' in window) {
                 window.addEventListener('devicemotion', handleMotionEvent);
