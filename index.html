@@ -1,57 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <title>Velocidade do Acelerômetro</title>
+    <meta charset="UTF-8">
+    <title>Velocidade do Acelerômetro</title>
 </head>
-<body >
- <br>
- <h1 id="velocity">0 m/s</h1>
- <br>
- <button id="startButton">Iniciar Captura de Movimento</button>
+<body>
+    <br>
+    <h1 id="velocity">0 m/s</h1>
+    <br>
+    <button id="calibrateButton">Calibrar Acelerômetro</button>
+    <button id="startButton">Iniciar Captura de Movimento</button>
 
- <script>
-     let velocity = 0;
-     let lastTime = Date.now();
-     const tolerance = 0.01; // Tolerância para considerar o dispositivo parado
+    <script>
+        let velocity = 0;
+        let lastTime = Date.now();
+        let calibratedGravity = { x: 0, y: 0, z: 0 };
+        let isCalibrated = false;
+        const tolerance = 0.05; // Tolerância para movimento significativo
 
-     function handleMotion(event) {
-         let currentTime = Date.now();
-         let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
-         lastTime = currentTime;
+        function calibrateAcceleration(event) {
+            calibratedGravity.x = event.accelerationIncludingGravity.x / 9.8;
+            calibratedGravity.y = event.accelerationIncludingGravity.y / 9.8;
+            calibratedGravity.z = event.accelerationIncludingGravity.z / 9.8;
+            isCalibrated = true;
+            alert("Acelerômetro calibrado!");
+            window.removeEventListener('devicemotion', calibrateAcceleration);
+        }
 
-         let ax = event.acceleration.x / 9.8; // Aceleração em m/s²
-         let ay = event.acceleration.y / 9.8; // Aceleração em m/s²
-         let az = event.acceleration.z / 9.8; // Aceleração em m/s²
+        function handleMotion(event) {
+            if (!isCalibrated) return;
 
-         let acceleration = Math.sqrt(ax * ax + ay * ay + az * az);
+            let currentTime = Date.now();
+            let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
+            lastTime = currentTime;
 
-         if (acceleration < tolerance) {
-             velocity = 0; // Resetar a velocidade quando o dispositivo está parado
-         } else {
-             velocity += acceleration * deltaTime; // Velocidade em m
-         }
+            let ax = (event.accelerationIncludingGravity.x / 9.8) - calibratedGravity.x;
+            let ay = (event.accelerationIncludingGravity.y / 9.8) - calibratedGravity.y;
+            let az = (event.accelerationIncludingGravity.z / 9.8) - calibratedGravity.z;
 
-         document.getElementById('velocity').textContent = `${velocity.toFixed(2)} m/s`;
-     }
+            let accelerationMagnitude = Math.sqrt(ax * ax + ay * ay + az * az);
 
-     document.getElementById('startButton').addEventListener('click', function() {
-         if (typeof DeviceMotionEvent.requestPermission === 'function') {
-             // Para iOS 13+
-             DeviceMotionEvent.requestPermission()
-             .then(permissionState => {
-                if (permissionState === 'granted') {
-                   window.addEventListener('devicemotion', handleMotion);
-                } else {
-                   alert('Permissão para acessar o acelerômetro negada.');
-                }
-             })
-             .catch(console.error);
-         } else {
-             // Para outros navegadores
-             window.addEventListener('devicemotion', handleMotion);
-         }
-     });
- </script>
+            if (accelerationMagnitude < tolerance) {
+                velocity = 0;
+            } else {
+                velocity += accelerationMagnitude * deltaTime;
+            }
+
+            document.getElementById('velocity').textContent = `${velocity.toFixed(2)} m/s`;
+        }
+
+        document.getElementById('calibrateButton').addEventListener('click', function() {
+            window.addEventListener('devicemotion', calibrateAcceleration);
+        });
+
+        document.getElementById('startButton').addEventListener('click', function() {
+            if (!isCalibrated) {
+                alert("Por favor, calibre o acelerômetro primeiro.");
+                return;
+            }
+
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                // Para iOS 13+
+                DeviceMotionEvent.requestPermission()
+                .then(permissionState => {
+                    if (permissionState === 'granted') {
+                        window.addEventListener('devicemotion', handleMotion);
+                    } else {
+                        alert('Permissão para acessar o acelerômetro negada.');
+                    }
+                })
+                .catch(console.error);
+            } else {
+                // Para outros navegadores
+                window.addEventListener('devicemotion', handleMotion);
+            }
+        });
+    </script>
 </body>
 </html>
