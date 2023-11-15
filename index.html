@@ -6,9 +6,11 @@
     <title>Document</title>
 </head>
 <body>
+    <button id="start">start</button>
     <section id="velocidade">0 m/s</section>
     <script>
         const velocidade = document.getElementById("velocidade")
+        const start = document.getElementById("start")
         // Inicializa as variáveis de velocidade para cada eixo
         let velocityX = 0;
         let velocityY = 0;
@@ -16,8 +18,9 @@
 
         // Guarda o timestamp da última leitura
         let lastTime = Date.now();
+        start.onclick = ()=>{
 
-        // Verifica se o Acelerômetro está disponível
+      
         if ('Accelerometer' in window) {
             // Cria uma nova instância do Acelerômetro
             let accelerometer = new Accelerometer({frequency: 60});
@@ -56,6 +59,8 @@
         } else {
             console.log('Acelerômetro não disponível');
         }
+    }
+      
     </script>
 </body>
 </html>
