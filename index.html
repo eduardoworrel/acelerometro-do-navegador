@@ -4,9 +4,10 @@
  <meta charset="UTF-8">
  <title>Velocidade do Acelerômetro</title>
 </head>
-<body>
- <h1>Velocidade Total em m/s</h1>
- <div id="velocity">0</div>
+<body >
+ <br>
+ <h1 id="velocity">0 m/s</h1>
+ <br>
  <button id="startButton">Iniciar Captura de Movimento</button>
 
  <script>
@@ -31,7 +32,7 @@
              velocity += acceleration * deltaTime; // Velocidade em m
          }
 
-         document.getElementById('velocity').textContent = velocity.toFixed(2);
+         document.getElementById('velocity').textContent = `${velocity.toFixed(2)} m/s`;
      }
 
      document.getElementById('startButton').addEventListener('click', function() {
