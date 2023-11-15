@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Velocidade do Acelerômetro</title>
+    <title>Velocidade do Acelerômetro com Filtro</title>
 </head>
 <body>
     <h1>Velocidade (eixo X) em m/s</h1>
@@ -11,6 +11,8 @@
 
     <script>
         let velocityX = 0;
+        let lastAx = 0;
+        let alpha = 0.1; // Fator de suavização para o filtro de baixa passagem
         let lastTime = Date.now();
 
         function handleMotion(event) {
@@ -18,8 +20,17 @@
             let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
             lastTime = currentTime;
 
-            let ax = event.acceleration.x;
+            let axRaw = event.acceleration.x;
+            // Aplicando um filtro de baixa passagem na aceleração
+            let ax = alpha * axRaw + (1 - alpha) * lastAx;
+            lastAx = ax;
+
             velocityX += ax * deltaTime;
+
+            // Opção para resetar a velocidade se for muito baixa
+            if (Math.abs(velocityX) < 0.1) {
+                velocityX = 0;
+            }
 
             document.getElementById('velocity').textContent = velocityX.toFixed(2);
         }
