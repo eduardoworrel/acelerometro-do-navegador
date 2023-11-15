@@ -1,49 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Velocidade do Acelerômetro</title>
+ <meta charset="UTF-8">
+ <title>Velocidade do Acelerômetro</title>
 </head>
 <body>
-  <h1>Velocidade Total em m/s</h1>
-  <div id="velocity">0</div>
-  <button id="startButton">Iniciar Captura de Movimento</button>
+ <h1>Velocidade Total em m/s</h1>
+ <div id="velocity">0</div>
+ <button id="startButton">Iniciar Captura de Movimento</button>
 
-  <script>
-      let velocity = 0;
-      let lastTime = Date.now();
+ <script>
+     let velocity = 0;
+     let lastTime = Date.now();
+     const tolerance = 0.01; // Tolerância para considerar o dispositivo parado
 
-      function handleMotion(event) {
-          let currentTime = Date.now();
-          let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
-          lastTime = currentTime;
+     function handleMotion(event) {
+         let currentTime = Date.now();
+         let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
+         lastTime = currentTime;
 
-          let ax = event.acceleration.x / 9.8; // Aceleração em m/s²
-          let ay = event.acceleration.y / 9.8; // Aceleração em m/s²
-          let az = event.acceleration.z / 9.8; // Aceleração em m/s²
+         let ax = event.acceleration.x / 9.8; // Aceleração em m/s²
+         let ay = event.acceleration.y / 9.8; // Aceleração em m/s²
+         let az = event.acceleration.z / 9.8; // Aceleração em m/s²
 
-          velocity += Math.sqrt(ax * ax + ay * ay + az * az) * deltaTime; // Velocidade em m
+         let acceleration = Math.sqrt(ax * ax + ay * ay + az * az);
 
-          document.getElementById('velocity').textContent = velocity.toFixed(2);
-      }
+         if (acceleration < tolerance) {
+             velocity = 0; // Resetar a velocidade quando o dispositivo está parado
+         } else {
+             velocity += acceleration * deltaTime; // Velocidade em m
+         }
 
-      document.getElementById('startButton').addEventListener('click', function() {
-          if (typeof DeviceMotionEvent.requestPermission === 'function') {
-              // Para iOS 13+
-              DeviceMotionEvent.requestPermission()
-              .then(permissionState => {
-                 if (permissionState === 'granted') {
-                     window.addEventListener('devicemotion', handleMotion);
-                 } else {
-                     alert('Permissão para acessar o acelerômetro negada.');
-                 }
-              })
-              .catch(console.error);
-          } else {
-              // Para outros navegadores
-              window.addEventListener('devicemotion', handleMotion);
-          }
-      });
-  </script>
+         document.getElementById('velocity').textContent = velocity.toFixed(2);
+     }
+
+     document.getElementById('startButton').addEventListener('click', function() {
+         if (typeof DeviceMotionEvent.requestPermission === 'function') {
+             // Para iOS 13+
+             DeviceMotionEvent.requestPermission()
+             .then(permissionState => {
+                if (permissionState === 'granted') {
+                   window.addEventListener('devicemotion', handleMotion);
+                } else {
+                   alert('Permissão para acessar o acelerômetro negada.');
+                }
+             })
+             .catch(console.error);
+         } else {
+             // Para outros navegadores
+             window.addEventListener('devicemotion', handleMotion);
+         }
+     });
+ </script>
 </body>
 </html>
