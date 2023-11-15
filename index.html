@@ -16,7 +16,7 @@
         let velocities = { x: 0, y: 0, z: 0 };
         let lastTime = Date.now();
         const accValues = { x: [], y: [], z: [] };
-        const N = 25; // Número de amostras para a média móvel
+        const N = 500; // Número de amostras para a média móvel
         const movementThreshold = 0.1; // Limiar para detectar movimento significativo
         const stationaryTimeLimit = 0.5; // Tempo para considerar parado
         let stationaryTime = { x: 0, y: 0, z: 0 };
