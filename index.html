@@ -7,6 +7,7 @@
 <body>
     <h1>Velocidade (eixo X) em m/s</h1>
     <div id="velocity">0</div>
+    <button id="startButton">Iniciar Captura de Movimento</button>
 
     <script>
         let velocityX = 0;
@@ -17,21 +18,19 @@
             let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
             lastTime = currentTime;
 
-            // Aceleração no eixo X (considerando a gravidade)
             let ax = event.accelerationIncludingGravity.x;
-
-            // Integra a aceleração para obter a velocidade
             velocityX += ax * deltaTime;
 
-            // Atualiza a exibição da velocidade
             document.getElementById('velocity').textContent = velocityX.toFixed(2);
         }
 
-        if (window.DeviceMotionEvent) {
-            window.addEventListener('devicemotion', handleMotion);
-        } else {
-            document.getElementById('velocity').textContent = 'Acelerômetro não disponível';
-        }
+        document.getElementById('startButton').addEventListener('click', function() {
+            if (window.DeviceMotionEvent) {
+                window.addEventListener('devicemotion', handleMotion);
+            } else {
+                document.getElementById('velocity').textContent = 'Acelerômetro não disponível';
+            }
+        });
     </script>
 </body>
 </html>
