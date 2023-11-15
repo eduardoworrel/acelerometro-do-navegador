@@ -15,6 +15,8 @@
         let lastTime = Date.now();
         const accValues = { x: [], y: [], z: [] };
         const N = 5; // Número de amostras para a média móvel
+        const stationaryThreshold = 0.05; // Limite para considerar o dispositivo como parado
+        let stationaryTime = 0;
 
         function addAccValue(axis, value) {
             accValues[axis].push(value);
@@ -40,8 +42,21 @@
             let avgAy = calculateAverage('y');
             let avgAz = calculateAverage('z');
 
-            // Calcula a velocidade com base na aceleração média
-            velocity += Math.sqrt(avgAx * avgAx + avgAy * avgAy + avgAz * avgAz) * deltaTime;
+            // Verifica se o dispositivo está parado
+            let accelerationMagnitude = Math.sqrt(avgAx * avgAx + avgAy * avgAy + avgAz * avgAz);
+            if (accelerationMagnitude < stationaryThreshold) {
+                stationaryTime += deltaTime;
+            } else {
+                stationaryTime = 0; // Resetar o contador de tempo parado se houver movimento
+            }
+
+            // Se o dispositivo estiver parado por mais de um certo tempo, zere a velocidade
+            if (stationaryTime > 0.5) { // Considerar parado após meio segundo
+                velocity = 0;
+            } else {
+                // Calcula a velocidade com base na aceleração média
+                velocity += accelerationMagnitude * deltaTime;
+            }
 
             document.getElementById('velocity').textContent = `Velocidade: ${velocity.toFixed(2)} m/s`;
         }
