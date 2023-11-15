@@ -2,65 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Velocidade do Acelerômetro</title>
 </head>
 <body>
-    <button id="start">start</button>
-    <section id="velocidade">0 m/s</section>
+    <h1>Velocidade (eixo X) em m/s</h1>
+    <div id="velocity">0</div>
+
     <script>
-        const velocidade = document.getElementById("velocidade")
-        const start = document.getElementById("start")
-        // Inicializa as variáveis de velocidade para cada eixo
         let velocityX = 0;
-        let velocityY = 0;
-        let velocityZ = 0;
-
-        // Guarda o timestamp da última leitura
         let lastTime = Date.now();
-        start.onclick = ()=>{
 
-      
-        if ('Accelerometer' in window) {
-            // Cria uma nova instância do Acelerômetro
-            let accelerometer = new Accelerometer({frequency: 60});
-            
-            accelerometer.addEventListener('error', event => {
-                console.error(`Erro no acelerômetro: ${event.error.name}`);
-            });
+        function handleMotion(event) {
+            let currentTime = Date.now();
+            let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
+            lastTime = currentTime;
 
-            // Define o evento de leitura
-            accelerometer.addEventListener('reading', e => {
-                // Calcula o intervalo de tempo desde a última leitura
-                let currentTime = Date.now();
-                let deltaTime = (currentTime - lastTime) / 1000; // Converte para segundos
-                lastTime = currentTime;
+            // Aceleração no eixo X (considerando a gravidade)
+            let ax = event.accelerationIncludingGravity.x;
 
-                // Aceleração ajustada (subtrai a aceleração devida à gravidade do eixo Z)
-                let ax = accelerometer.x;
-                let ay = accelerometer.y;
-                let az = accelerometer.z - 9.81;
+            // Integra a aceleração para obter a velocidade
+            velocityX += ax * deltaTime;
 
-                // Atualiza a velocidade para cada eixo
-                velocityX += ax * deltaTime;
-                velocityY += ay * deltaTime;
-                velocityZ += az * deltaTime;
-
-                // Calcula a velocidade total combinando os três eixos
-                let totalVelocity = Math.sqrt(velocityX**2 + velocityY**2 + velocityZ**2);
-
-                // Exibe a velocidade total
-                velocidade.textContent = `${totalVelocity.toFixed(2)} m/s`;
-            });
-
-            // Inicia a leitura do acelerômetro
-            accelerometer.start();
-            console.log(accelerometer)
-        } else {
-            console.log('Acelerômetro não disponível');
+            // Atualiza a exibição da velocidade
+            document.getElementById('velocity').textContent = velocityX.toFixed(2);
         }
-    }
-      
+
+        if (window.DeviceMotionEvent) {
+            window.addEventListener('devicemotion', handleMotion);
+        } else {
+            document.getElementById('velocity').textContent = 'Acelerômetro não disponível';
+        }
     </script>
 </body>
 </html>
