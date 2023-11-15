@@ -18,17 +18,27 @@
             let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
             lastTime = currentTime;
 
-            let ax = event.accelerationIncludingGravity.x;
+            let ax = event.acceleration.x;
             velocityX += ax * deltaTime;
 
             document.getElementById('velocity').textContent = velocityX.toFixed(2);
         }
 
         document.getElementById('startButton').addEventListener('click', function() {
-            if (window.DeviceMotionEvent) {
-                window.addEventListener('devicemotion', handleMotion);
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                // Para iOS 13+
+                DeviceMotionEvent.requestPermission()
+                .then(permissionState => {
+                    if (permissionState === 'granted') {
+                        window.addEventListener('devicemotion', handleMotion);
+                    } else {
+                        alert('Permissão para acessar o acelerômetro negada.');
+                    }
+                })
+                .catch(console.error);
             } else {
-                document.getElementById('velocity').textContent = 'Acelerômetro não disponível';
+                // Para outros navegadores
+                window.addEventListener('devicemotion', handleMotion);
             }
         });
     </script>
