@@ -2,77 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Velocidade do Acelerômetro</title>
+    <title>Velocidade com Acelerômetro e Giroscópio</title>
 </head>
 <body>
     <br>
     <h1 id="velocity">0 m/s</h1>
     <br>
-    <button id="calibrateButton">Calibrar Acelerômetro</button>
     <button id="startButton">Iniciar Captura de Movimento</button>
 
     <script>
         let velocity = 0;
         let lastTime = Date.now();
-        let calibratedGravity = { x: 0, y: 0, z: 0 };
-        let isCalibrated = false;
-        const tolerance = 0.05; // Tolerância para movimento significativo
-
-        function calibrateAcceleration(event) {
-            calibratedGravity.x = event.accelerationIncludingGravity.x / 9.8;
-            calibratedGravity.y = event.accelerationIncludingGravity.y / 9.8;
-            calibratedGravity.z = event.accelerationIncludingGravity.z / 9.8;
-            isCalibrated = true;
-            alert("Acelerômetro calibrado!");
-            window.removeEventListener('devicemotion', calibrateAcceleration);
-        }
+        let lastAcceleration = { x: 0, y: 0, z: 0 };
+        const movementThreshold = 0.2; // Limiar para detectar movimento significativo
 
         function handleMotion(event) {
-            if (!isCalibrated) return;
-
             let currentTime = Date.now();
             let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
             lastTime = currentTime;
 
-            let ax = (event.accelerationIncludingGravity.x / 9.8) - calibratedGravity.x;
-            let ay = (event.accelerationIncludingGravity.y / 9.8) - calibratedGravity.y;
-            let az = (event.accelerationIncludingGravity.z / 9.8) - calibratedGravity.z;
+            let alpha = 0.8; // Fator para suavização da aceleração
+            let ax = alpha * lastAcceleration.x + (1 - alpha) * event.acceleration.x;
+            let ay = alpha * lastAcceleration.y + (1 - alpha) * event.acceleration.y;
+            let az = alpha * lastAcceleration.z + (1 - alpha) * event.acceleration.z;
+            lastAcceleration = { x: ax, y: ay, z: az };
 
             let accelerationMagnitude = Math.sqrt(ax * ax + ay * ay + az * az);
 
-            if (accelerationMagnitude < tolerance) {
-                velocity = 0;
+            if (accelerationMagnitude > movementThreshold) {
+                velocity += accelerationMagnitude * deltaTime; // Calcular velocidade quando em movimento
             } else {
-                velocity += accelerationMagnitude * deltaTime;
+                velocity = 0; // Resetar a velocidade se o movimento for insignificante
             }
 
             document.getElementById('velocity').textContent = `${velocity.toFixed(2)} m/s`;
         }
 
-        document.getElementById('calibrateButton').addEventListener('click', function() {
-            window.addEventListener('devicemotion', calibrateAcceleration);
-        });
+        function handleOrientation(event) {
+            // Processamento dos dados de rotação (giroscópio)
+            // Esta função pode ser usada para refinar a detecção de movimento
+            // e complementar os dados de aceleração.
+        }
 
         document.getElementById('startButton').addEventListener('click', function() {
-            if (!isCalibrated) {
-                alert("Por favor, calibre o acelerômetro primeiro.");
-                return;
-            }
-
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                // Para iOS 13+
-                DeviceMotionEvent.requestPermission()
-                .then(permissionState => {
+                DeviceMotionEvent.requestPermission().then(permissionState => {
                     if (permissionState === 'granted') {
                         window.addEventListener('devicemotion', handleMotion);
+                        window.addEventListener('deviceorientation', handleOrientation);
                     } else {
-                        alert('Permissão para acessar o acelerômetro negada.');
+                        alert('Permissão para acessar os sensores negada.');
                     }
-                })
-                .catch(console.error);
+                }).catch(console.error);
             } else {
-                // Para outros navegadores
                 window.addEventListener('devicemotion', handleMotion);
+                window.addEventListener('deviceorientation', handleOrientation);
             }
         });
     </script>
