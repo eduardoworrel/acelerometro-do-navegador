@@ -7,10 +7,11 @@
             border: 1px solid black;
         }
     </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <button id="startButton">Iniciar</button>
     <canvas id="canvas" width="500" height="500"></canvas>
+    <button id="startButton">Iniciar</button>
 
     <script>
         function requestPermission() {
@@ -35,21 +36,17 @@
             let x = canvas.width / 2;
             let y = canvas.height / 2;
             let lastAccel = { x: 0, y: 0 };
-            let velocity = { x: 0, y: 0 };
 
             window.addEventListener('devicemotion', (event) => {
                 if (event.accelerationIncludingGravity) {
-                    let accelX = event.accelerationIncludingGravity.x;
-                    let accelY = event.accelerationIncludingGravity.y;
+                    let deltaX = event.accelerationIncludingGravity.x - lastAccel.x;
+                    let deltaY = event.accelerationIncludingGravity.y - lastAccel.y;
                     
-                    velocity.x += (accelX - lastAccel.x);
-                    velocity.y += (accelY - lastAccel.y);
+                    lastAccel.x = event.accelerationIncludingGravity.x;
+                    lastAccel.y = event.accelerationIncludingGravity.y;
 
-                    lastAccel.x = accelX;
-                    lastAccel.y = accelY;
-
-                    x += velocity.x * 0.1;
-                    y -= velocity.y * 0.1; // Invertendo Y porque as coordenadas da tela são invertidas
+                    x += deltaX * 5;
+                    y -= deltaY * 5; // Invertendo Y porque as coordenadas da tela são invertidas
 
                     x = Math.max(0, Math.min(canvas.width, x));
                     y = Math.max(0, Math.min(canvas.height, y));
