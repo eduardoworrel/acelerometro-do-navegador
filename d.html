@@ -34,11 +34,16 @@
             const ctx = canvas.getContext('2d');
             let x = canvas.width / 2;
             let y = canvas.height / 2;
+            let lastUpdateTime = Date.now();
 
             window.addEventListener('devicemotion', (event) => {
-                if (event.acceleration) {
-                    x += event.acceleration.x * 0.1;
-                    y += event.acceleration.y * 0.1;
+                const now = Date.now();
+                const elapsedTime = (now - lastUpdateTime) / 1000;
+                lastUpdateTime = now;
+
+                if (event.accelerationIncludingGravity) {
+                    x += event.accelerationIncludingGravity.x * elapsedTime * 50;
+                    y -= event.accelerationIncludingGravity.y * elapsedTime * 50; // Invertendo Y porque as coordenadas da tela são invertidas
 
                     x = Math.max(0, Math.min(canvas.width, x));
                     y = Math.max(0, Math.min(canvas.height, y));
