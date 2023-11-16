@@ -9,8 +9,6 @@
     <br>
     <h1 id="heading">0°</h1>
     <br>
-    <h1 id="velocityX">Velocidade X: 0 m/s</h1>
-    <h1 id="velocityY">Velocidade Y: 0 m/s</h1>
     <h1 id="velocityZ">Velocidade Z: 0 m/s</h1>
     <br>
     <button id="startButton">Iniciar Captura de Movimento</button>
@@ -63,8 +61,6 @@
                 }
             });
 
-            document.getElementById('velocityX').textContent = `Velocidade X: ${velocities.x.toFixed(2)} m/s`;
-            document.getElementById('velocityY').textContent = `Velocidade Y: ${velocities.y.toFixed(2)} m/s`;
             document.getElementById('velocityZ').textContent = `Velocidade Z: ${velocities.z.toFixed(2)} m/s`;
         }
 
