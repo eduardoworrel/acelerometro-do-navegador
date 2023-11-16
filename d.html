@@ -35,19 +35,17 @@
             let x = canvas.width / 2;
             let y = canvas.height / 2;
             let lastAccel = { x: 0, y: 0 };
+            const threshold = 2; // Limiar de movimento
 
             window.addEventListener('devicemotion', (event) => {
                 if (event.accelerationIncludingGravity) {
                     let deltaX = event.accelerationIncludingGravity.x - lastAccel.x;
                     let deltaY = event.accelerationIncludingGravity.y - lastAccel.y;
 
-                    lastAccel.x = event.accelerationIncludingGravity.x;
-                    lastAccel.y = event.accelerationIncludingGravity.y;
-
-                    // Se a aceleração mudar significativamente, atualize a posição
-                    if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
-                        x += deltaX * 2;
-                        y -= deltaY * 2; // Invertendo Y porque as coordenadas da tela são invertidas
+                    // Verifica se o movimento é significativo
+                    if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
+                        x += deltaX;
+                        y -= deltaY; // Invertendo Y porque as coordenadas da tela são invertidas
 
                         x = Math.max(0, Math.min(canvas.width, x));
                         y = Math.max(0, Math.min(canvas.height, y));
@@ -57,6 +55,9 @@
                         ctx.arc(x, y, 5, 0, 2 * Math.PI);
                         ctx.fill();
                     }
+
+                    lastAccel.x = event.accelerationIncludingGravity.x;
+                    lastAccel.y = event.accelerationIncludingGravity.y;
                 }
             }, true);
         }
