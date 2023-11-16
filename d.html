@@ -51,14 +51,13 @@
             const acc = event.acceleration; // Aceleração sem gravidade
 
             if (!acc.x || !acc.y) {
-                // Se a aceleração não estiver disponível
-                return;
+                return; // Ignorar se a aceleração não estiver disponível
             }
 
-            // Invertendo os valores de aceleração
-            let moveX = -acc.x * 0.5; // Invertendo o eixo X
-            let moveY = -acc.y * 0.5; // Invertendo o eixo Y
+            let moveX = acc.x * 0.5; // Ajuste no eixo X
+            let moveY = acc.y * 0.5; // Ajuste no eixo Y
 
+            // Verificar se o movimento excede o limiar
             if (Math.abs(moveX) < threshold && Math.abs(moveY) < threshold) {
                 return;
             }
@@ -75,7 +74,7 @@
                     if (permissionState === 'granted') {
                         startTracking();
                     }
-                }).catch(alert);
+                }).catch(console.error);
             } else {
                 startTracking();
             }
