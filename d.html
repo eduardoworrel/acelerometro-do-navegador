@@ -34,7 +34,7 @@
         let tracking = false;
         let lastX = canvas.width / 2;
         let lastY = canvas.height / 2;
-        const threshold = 1.5; // Ajustando o limiar
+        const threshold = 1; // Mantendo o limiar para sensibilidade
 
         function draw(x, y) {
             ctx.beginPath();
@@ -49,16 +49,18 @@
             if (!tracking) return;
 
             const acc = event.accelerationIncludingGravity;
-            let moveX = acc.x;
-            let moveY = acc.y;
 
-            // Filtragem para reduzir o impacto de pequenas inclinações
+            // Escalando o deslocamento para um espaço de 2 metros quadrados
+            let moveX = acc.x * 0.5; // Ajuste na multiplicação
+            let moveY = acc.y * 0.5;
+
+            // Filtragem para sensibilidade
             if (Math.abs(moveX) < threshold && Math.abs(moveY) < threshold) {
                 return;
             }
 
-            let x = lastX + moveX * 5; // Ajuste na multiplicação para maior sensibilidade
-            let y = lastY + moveY * 5;
+            let x = lastX + moveX;
+            let y = lastY + moveY;
 
             draw(x, y);
         }
