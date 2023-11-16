@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Desenho com Movimento</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        #canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <button id="startButton">Iniciar</button>
+
+    <script>
+        function requestPermission() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                .then(permissionState => {
+                    if (permissionState === 'granted') {
+                        startDrawing();
+                    } else {
+                        alert('Permissão para acesso aos sensores negada.');
+                    }
+                })
+                .catch(console.error);
+            } else {
+                startDrawing(); // Inicia desenho diretamente em dispositivos não iOS
+            }
+        }
+
+        function startDrawing() {
+            if ('LinearAccelerationSensor' in window) {
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                let x = canvas.width / 2;
+                let y = canvas.height / 2;
+
+                const sensor = new LinearAccelerationSensor({ frequency: 60 });
+                sensor.addEventListener('reading', () => {
+                    x += sensor.x * 0.1;
+                    y += sensor.y * 0.1;
+
+                    x = Math.max(0, Math.min(canvas.width, x));
+                    y = Math.max(0, Math.min(canvas.height, y));
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+                sensor.start();
+            } else {
+                alert("Sensor de Aceleração Linear não disponível.");
+            }
+        }
+
+        document.getElementById('startButton').addEventListener('click', requestPermission);
+    </script>
+</body>
+</html>
