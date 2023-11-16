@@ -1,68 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Desenho com Movimento</title>
+    <title>Rastreador de Movimento</title>
     <style>
         #canvas {
             border: 1px solid black;
+            width: 300px;
+            height: 300px;
+        }
+        #startButton {
+            display: block;
+            margin: 10px;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="500" height="500"></canvas>
-    <button id="startButton">Iniciar</button>
+    <button id="startButton">Iniciar Rastreamento</button>
+    <canvas id="canvas"></canvas>
 
     <script>
-        function requestPermission() {
-            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission()
-                .then(permissionState => {
-                    if (permissionState === 'granted') {
-                        startDrawing();
-                    } else {
-                        alert('Permissão para acesso aos sensores negada.');
-                    }
-                })
-                .catch(console.error);
-            } else {
-                startDrawing(); // Inicia desenho diretamente em dispositivos não iOS
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let tracking = false;
+        let lastX = canvas.width / 2;
+        let lastY = canvas.height / 2;
+
+        // Função para desenhar no canvas
+        function draw(x, y) {
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            lastX = x;
+            lastY = y;
+        }
+
+        // Função para tratar o movimento do dispositivo
+        function handleMotion(event) {
+            if (!tracking) return;
+
+            const acc = event.acceleration;
+            const threshold = 2; // Sensibilidade do movimento
+
+            // Convertendo aceleração em deslocamento no canvas
+            const x = lastX + acc.x * 10;
+            const y = lastY + acc.y * 10;
+
+            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
+                draw(x, y);
             }
         }
 
-        function startDrawing() {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            let x = canvas.width / 2;
-            let y = canvas.height / 2;
-            let lastAccel = { x: 0, y: 0 };
-            const threshold = 2; // Limiar de movimento
-
-            window.addEventListener('devicemotion', (event) => {
-                if (event.accelerationIncludingGravity) {
-                    let deltaX = event.accelerationIncludingGravity.x - lastAccel.x;
-                    let deltaY = event.accelerationIncludingGravity.y - lastAccel.y;
-
-                    // Verifica se o movimento é significativo
-                    if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
-                        x += deltaX;
-                        y -= deltaY; // Invertendo Y porque as coordenadas da tela são invertidas
-
-                        x = Math.max(0, Math.min(canvas.width, x));
-                        y = Math.max(0, Math.min(canvas.height, y));
-
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.beginPath();
-                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
-                        ctx.fill();
+        // Função para iniciar o rastreamento
+        document.getElementById('startButton').addEventListener('click', function() {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                // Solicitação de permissão para iOS
+                DeviceMotionEvent.requestPermission().then(permissionState => {
+                    if (permissionState === 'granted') {
+                        startTracking();
                     }
+                }).catch(console.error);
+            } else {
+                // Para outros dispositivos
+                startTracking();
+            }
+        });
 
-                    lastAccel.x = event.accelerationIncludingGravity.x;
-                    lastAccel.y = event.accelerationIncludingGravity.y;
-                }
-            }, true);
+        function startTracking() {
+            tracking = true;
+            window.addEventListener('devicemotion', handleMotion);
         }
-
-        document.getElementById('startButton').addEventListener('click', requestPermission);
     </script>
 </body>
 </html>
