@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1 id="heading">0°</h1>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+    // Verifica se a orientação do dispositivo está disponível
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleOrientation, false);
+    } else {
+        alert("Orientação do dispositivo não suportada");
+    }
+});
+
+function handleOrientation(event) {
+    // Obtém o ângulo de orientação em graus em relação ao norte verdadeiro
+    var absolute = event.absolute;
+    var alpha = event.alpha;
+
+    // Atualiza o elemento HTML com o ângulo de orientação
+    document.getElementById('heading').textContent = `${Math.round(alpha)}°`;
+}
+    </script>
+</body>
+</html>
