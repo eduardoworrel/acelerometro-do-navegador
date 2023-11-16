@@ -3,28 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Artista Móvel</title>
+    <style>
+        body { text-align: center; margin: 0; }
+        canvas { border: 1px solid black; }
+        #permissionButton { display: none; }
+    </style>
 </head>
 <body>
-    <h1 id="heading">0°</h1>
+    <button id="permissionButton">Permitir Acesso ao Movimento</button>
+    <canvas id="drawingCanvas"></canvas>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-    // Verifica se a orientação do dispositivo está disponível
-    if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', handleOrientation, false);
-    } else {
-        alert("Orientação do dispositivo não suportada");
-    }
-});
+        var canvas = document.getElementById('drawingCanvas');
+        var ctx = canvas.getContext('2d');
+        var permissionButton = document.getElementById('permissionButton');
 
-function handleOrientation(event) {
-    // Obtém o ângulo de orientação em graus em relação ao norte verdadeiro
-    var absolute = event.absolute;
-    var alpha = event.alpha;
+        // Configurar tamanho do canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-    // Atualiza o elemento HTML com o ângulo de orientação
-    document.getElementById('heading').textContent = `${Math.round(alpha)}°`;
-}
+        var posX = canvas.width / 2;
+        var posY = canvas.height / 2;
+
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 2;
+
+        function draw(x, y) {
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function handleMotionEvent(event) {
+            var acceleration = event.accelerationIncludingGravity;
+            posX += acceleration.x;
+            posY -= acceleration.y;
+
+            posX = Math.max(0, Math.min(canvas.width, posX));
+            posY = Math.max(0, Math.min(canvas.height, posY));
+
+            draw(posX, posY);
+        }
+
+        // Verifica se é necessário solicitar permissão para iOS 13+
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            permissionButton.style.display = 'block';
+            permissionButton.addEventListener('click', function() {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotionEvent);
+                        }
+                    })
+                    .catch(console.error);
+                this.style.display = 'none';
+            });
+        } else {
+            window.addEventListener('devicemotion', handleMotionEvent);
+        }
     </script>
 </body>
 </html>
