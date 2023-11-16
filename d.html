@@ -4,14 +4,23 @@
     <title>Rastreador de Movimento</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
         #canvas {
             border: 1px solid black;
-            width: 300px;
-            height: 300px;
+            width: 90vw;
+            height: 50vh;
+            max-width: 600px;
+            max-height: 300px;
+            margin: auto;
         }
         #startButton {
             display: block;
-            margin: 10px;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 1em;
         }
     </style>
 </head>
@@ -25,8 +34,8 @@
         let tracking = false;
         let lastX = canvas.width / 2;
         let lastY = canvas.height / 2;
+        const threshold = 1.5; // Ajustando o limiar
 
-        // Função para desenhar no canvas
         function draw(x, y) {
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
@@ -36,33 +45,32 @@
             lastY = y;
         }
 
-        // Função para tratar o movimento do dispositivo
         function handleMotion(event) {
             if (!tracking) return;
 
-            const acc = event.acceleration;
-            const threshold = 2; // Sensibilidade do movimento
+            const acc = event.accelerationIncludingGravity;
+            let moveX = acc.x;
+            let moveY = acc.y;
 
-            // Convertendo aceleração em deslocamento no canvas
-            const x = lastX + acc.x * 10;
-            const y = lastY + acc.y * 10;
-
-            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
-                draw(x, y);
+            // Filtragem para reduzir o impacto de pequenas inclinações
+            if (Math.abs(moveX) < threshold && Math.abs(moveY) < threshold) {
+                return;
             }
+
+            let x = lastX + moveX * 5; // Ajuste na multiplicação para maior sensibilidade
+            let y = lastY + moveY * 5;
+
+            draw(x, y);
         }
 
-        // Função para iniciar o rastreamento
         document.getElementById('startButton').addEventListener('click', function() {
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                // Solicitação de permissão para iOS
                 DeviceMotionEvent.requestPermission().then(permissionState => {
                     if (permissionState === 'granted') {
                         startTracking();
                     }
                 }).catch(console.error);
             } else {
-                // Para outros dispositivos
                 startTracking();
             }
         });
