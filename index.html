@@ -10,12 +10,14 @@
             justify-content: center;
             align-items: center;
             background-color: #f0f0f0;
+            overflow: hidden;
         }
 
         #box {
-            width: 100px;
-            height: 100px;
+            width: 10vmin; /* 10% da menor dimensão da viewport */
+            height: 10vmin;
             background-color: blue;
+            position: absolute;
             transition: transform 0.5s, background-color 0.5s;
         }
 
@@ -37,41 +39,32 @@
     <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
     <div id="box"></div>
     <script>
-        var lastUpdate = Date.now();
-        var updateInterval = 100; // Atualizar a cada 100 ms
-        var smoothFactor = 0.2; // Fator de suavização
-
+        var smoothFactor = 0.1; // Fator de suavização
         var currentAlpha = 0, currentBeta = 0, currentGamma = 0;
 
         function handleOrientation(event) {
-            var now = Date.now();
-            if (now - lastUpdate > updateInterval) {
-                lastUpdate = now;
+            // Suavização dos dados
+            var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
+            var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
+            var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
 
-                // Suavização dos dados
-                var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
-                var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
-                var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
+            currentAlpha = alpha;
+            currentBeta = beta;
+            currentGamma = gamma;
 
-                currentAlpha = alpha;
-                currentBeta = beta;
-                currentGamma = gamma;
-
-                // Aplicar transformações
-                updateBox(alpha, beta, gamma);
-            }
+            // Aplicar transformações
+            updateBox(alpha, beta, gamma);
         }
 
         function updateBox(alpha, beta, gamma) {
             var box = document.getElementById('box');
 
-            // Transformações
+            // Calcular transformações com base na viewport
+            var translateX = 50 + gamma; // Mover até 50% para esquerda/direita
+            var translateY = 50 + beta; // Mover até 50% para cima/baixo
             var scale = 1 + beta / 360; // Escala limitada
-            var rotateX = `rotateX(${beta}deg)`;
-            var rotateY = `rotateY(${gamma}deg)`;
-            var rotateZ = `rotateZ(${alpha}deg)`;
 
-            box.style.transform = `${rotateX} ${rotateY} ${rotateZ} scale(${scale})`;
+            box.style.transform = `translate(${translateX}vw, ${translateY}vh) scale(${scale}) rotate(${alpha}deg)`;
 
             // Mudança de cor
             var red = Math.abs(Math.round(alpha)) % 256;
