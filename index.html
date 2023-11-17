@@ -30,52 +30,26 @@
         const permissionButton = document.getElementById('permissionButton');
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
-        let velocityX = 0, velocityY = 0;
-        const friction = 0.95; // Fator de atrito para desacelerar o círculo
+        let lastAcceleration = { x: 0, y: 0 };
 
         function handleMotionEvent(event) {
             const acc = event.accelerationIncludingGravity;
-            const threshold = 2; // Limiar para detectar movimento significativo
+            const changeInAccelerationX = Math.abs(acc.x - lastAcceleration.x);
+            const changeInAccelerationY = Math.abs(acc.y - lastAcceleration.y);
+            const threshold = 2; // Limiar de mudança para detectar um movimento
 
-            // Aplica o movimento apenas se a aceleração for significativa
-            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
-                velocityX += acc.x;
-                velocityY += acc.y;
+            if (changeInAccelerationX > threshold || changeInAccelerationY > threshold) {
+                // Mover o círculo proporcionalmente à mudança na aceleração
+                x += changeInAccelerationX * 2;
+                y -= changeInAccelerationY * 2;
+
+                // Restringe a posição dentro da janela
+                x = Math.max(0, Math.min(window.innerWidth - 50, x));
+                y = Math.max(0, Math.min(window.innerHeight - 50, y));
+
+                circle.style.left = x + 'px';
+                circle.style.top = y + 'px';
             }
 
-            // Aplica atrito para desacelerar gradualmente
-            velocityX *= friction;
-            velocityY *= friction;
-
-            // Atualiza a posição
-            x += velocityX;
-            y -= velocityY;
-
-            // Restringe a posição dentro da janela
-            x = Math.max(0, Math.min(window.innerWidth - 50, x));
-            y = Math.max(0, Math.min(window.innerHeight - 50, y));
-
-            circle.style.left = x + 'px';
-            circle.style.top = y + 'px';
-        }
-
-        if (typeof DeviceMotionEvent.requestPermission === 'function') {
-            permissionButton.style.display = 'block';
-            permissionButton.addEventListener('click', () => {
-                DeviceMotionEvent.requestPermission()
-                    .then(response => {
-                        if (response == 'granted') {
-                            window.addEventListener('devicemotion', handleMotionEvent, true);
-                            permissionButton.style.display = 'none';
-                        } else {
-                            alert("Permission not granted");
-                        }
-                    })
-                    .catch(console.error);
-            });
-        } else {
-            window.addEventListener('devicemotion', handleMotionEvent, true);
-        }
-    </script>
-</body>
-</html>
+            // Atualizar a última aceleração
+            lastAcceleration = { x
