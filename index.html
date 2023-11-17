@@ -34,7 +34,7 @@
 
         function handleMotionEvent(event) {
             let acc = event.acceleration;
-            let threshold = 5; // Aumenta o limite para considerar apenas movimentos mais fortes
+            let threshold = 3; // Aumenta o limite para considerar apenas movimentos mais fortes
 
             if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
                 x += acc.x; // Ajusta a escala de movimento conforme necessário
