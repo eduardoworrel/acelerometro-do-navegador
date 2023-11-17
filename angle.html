@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Giroscópio Visual Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+
+        #box {
+            width: 250px;
+            height: 250px;
+            background-color: blue;
+            transition: transform 0.3,background-color 0.5s;
+        }
+
+        #permissionButton {
+            display: none;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
+    <div id="box"></div>
+    <script>
+        var lastUpdate = Date.now();
+        var updateInterval = 200; // Atualizar a cada 100 ms
+        var smoothFactor = 0.4; // Fator de suavização
+
+        var currentAlpha = 0, currentBeta = 0, currentGamma = 0;
+
+        function handleOrientation(event) {
+            var now = Date.now();
+            if (now - lastUpdate > updateInterval) {
+                lastUpdate = now;
+
+                // Suavização dos dados
+                var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
+                var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
+                var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
+
+                currentAlpha = alpha;
+                currentBeta = beta;
+                currentGamma = gamma;
+
+                // Aplicar transformações
+                updateBox(alpha, beta, gamma);
+            }
+        }
+
+        function updateBox(alpha, beta, gamma) {
+            var box = document.getElementById('box');
+
+            // Transformações
+            var scale = 1 + beta / 360; // Escala limitada
+            var rotateX = `rotateX(${beta}deg)`;
+            var rotateY = `rotateY(${gamma}deg)`;
+            var rotateZ = `rotateZ(${alpha}deg)`;
+
+            box.style.transform = `${rotateX} ${rotateY} ${rotateZ} scale(${scale})`;
+
+            // Mudança de cor
+            var red = Math.abs(Math.round(alpha)) % 256;
+            var green = Math.abs(Math.round(beta)) % 256;
+            var blue = Math.abs(Math.round(gamma)) % 256;
+            box.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+        }
+
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            var button = document.getElementById('permissionButton');
+            button.style.display = 'block';
+
+            button.addEventListener('click', function() {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation, true);
+                        }
+                    })
+                    .catch(console.error);
+                this.style.display = 'none';
+            });
+        } else {
+            window.addEventListener('deviceorientation', handleOrientation, true);
+        }
+    </script>
+</body>
+</html>

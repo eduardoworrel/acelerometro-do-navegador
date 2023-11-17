@@ -1,103 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Giroscópio Visual Demo</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f0f0;
-        }
-
-        #box {
-            width: 250px;
-            height: 250px;
-            background-color: blue;
-            transition: transform 0.3,background-color 0.5s;
-        }
-
-        #permissionButton {
-            display: none;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            position: fixed;
-            top: 10px;
-            right: 10px;
-        }
-    </style>
+    <title>Asteroides</title>
 </head>
 <body>
-    <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
-    <div id="box"></div>
+    <style>
+        canvas { background: black; display: block; margin: 0 auto; }
+    </style>
+    <canvas id="gameCanvas"></canvas>
     <script>
-        var lastUpdate = Date.now();
-        var updateInterval = 100; // Atualizar a cada 100 ms
-        var smoothFactor = 0.4; // Fator de suavização
-
-        var currentAlpha = 0, currentBeta = 0, currentGamma = 0;
-
-        function handleOrientation(event) {
-            var now = Date.now();
-            if (now - lastUpdate > updateInterval) {
-                lastUpdate = now;
-
-                // Suavização dos dados
-                var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
-                var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
-                var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
-
-                currentAlpha = alpha;
-                currentBeta = beta;
-                currentGamma = gamma;
-
-                // Aplicar transformações
-                updateBox(alpha, beta, gamma);
+        document.addEventListener('DOMContentLoaded', function() {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    
+        let anguloDeTiro = 0;
+        const tiros = [];
+    
+        class Nave {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.size = 30;
+            }
+    
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'blue';
+                ctx.fill();
             }
         }
-
-        function updateBox(alpha, beta, gamma) {
-            var box = document.getElementById('box');
-
-            // Transformações
-            var scale = 1 + beta / 360; // Escala limitada
-            var rotateX = `rotateX(${beta}deg)`;
-            var rotateY = `rotateY(${gamma}deg)`;
-            var rotateZ = `rotateZ(${alpha}deg)`;
-
-            box.style.transform = `${rotateX} ${rotateY} ${rotateZ} scale(${scale})`;
-
-            // Mudança de cor
-            var red = Math.abs(Math.round(alpha)) % 256;
-            var green = Math.abs(Math.round(beta)) % 256;
-            var blue = Math.abs(Math.round(gamma)) % 256;
-            box.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+    
+        class Tiro {
+            constructor(angulo) {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.velocidade = 5;
+                this.angulo = angulo;
+                this.raio = 5;
+            }
+    
+            move() {
+                this.x += this.velocidade * Math.cos(this.angulo * Math.PI / 180);
+                this.y += this.velocidade * Math.sin(this.angulo * Math.PI / 180);
+            }
+    
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+            }
         }
-
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            var button = document.getElementById('permissionButton');
-            button.style.display = 'block';
-
-            button.addEventListener('click', function() {
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            window.addEventListener('deviceorientation', handleOrientation, true);
-                        }
-                    })
-                    .catch(console.error);
-                this.style.display = 'none';
+    
+        const nave = new Nave();
+    
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            nave.draw();
+            tiros.forEach((tiro, index) => {
+                tiro.move();
+                tiro.draw();
+                // Remover tiros que saíram da tela
+                if (tiro.x < 0 || tiro.x > canvas.width || tiro.y < 0 || tiro.y > canvas.height) {
+                    tiros.splice(index, 1);
+                }
             });
-        } else {
-            window.addEventListener('deviceorientation', handleOrientation, true);
+            requestAnimationFrame(updateGame);
         }
+    
+        function startGame() {
+            if (window.DeviceOrientationEvent) {
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    // Para iOS 13+
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('deviceorientation', handleOrientation, true);
+                            } else {
+                                alert('Permissão para acessar a orientação do dispositivo negada.');
+                            }
+                        })
+                        .catch(console.error);
+                } else {
+                    // Para navegadores não iOS
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+                }
+            } else {
+                alert("Seu dispositivo não suporta orientação.");
+            }
+            updateGame();
+        }
+    
+        function handleOrientation(event) {
+            anguloDeTiro = event.alpha;
+            tiros.push(new Tiro(anguloDeTiro));
+        }
+    
+        // Botão ou algum gatilho para iniciar o jogo
+        // Exemplo: startButton.addEventListener('click', startGame);
+        startGame(); // Iniciar automaticamente para fins de demonstração
+    });
     </script>
 </body>
 </html>
