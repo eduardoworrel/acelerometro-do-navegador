@@ -37,19 +37,40 @@
     <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
     <div id="box"></div>
     <script>
-        function handleOrientation(event) {
-            var alpha = event.alpha;
-            var beta = event.beta;
-            var gamma = event.gamma;
+        var lastUpdate = Date.now();
+        var updateInterval = 100; // Atualizar a cada 100 ms
+        var smoothFactor = 0.2; // Fator de suavização
 
-            // Transformações baseadas em alpha, beta e gamma
-            var scale = 1 + beta / 180; // Escalar com base em beta
+        var currentAlpha = 0, currentBeta = 0, currentGamma = 0;
+
+        function handleOrientation(event) {
+            var now = Date.now();
+            if (now - lastUpdate > updateInterval) {
+                lastUpdate = now;
+
+                // Suavização dos dados
+                var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
+                var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
+                var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
+
+                currentAlpha = alpha;
+                currentBeta = beta;
+                currentGamma = gamma;
+
+                // Aplicar transformações
+                updateBox(alpha, beta, gamma);
+            }
+        }
+
+        function updateBox(alpha, beta, gamma) {
+            var box = document.getElementById('box');
+
+            // Transformações
+            var scale = 1 + beta / 360; // Escala limitada
             var rotateX = `rotateX(${beta}deg)`;
             var rotateY = `rotateY(${gamma}deg)`;
             var rotateZ = `rotateZ(${alpha}deg)`;
 
-            // Aplicar transformações
-            var box = document.getElementById('box');
             box.style.transform = `${rotateX} ${rotateY} ${rotateZ} scale(${scale})`;
 
             // Mudança de cor
