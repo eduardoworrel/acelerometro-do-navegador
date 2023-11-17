@@ -11,6 +11,7 @@
             position: absolute;
             left: 50%;
             top: 50%;
+            transition: left 0.5s, top 0.5s;
         }
         #permissionButton {
             display: none;
@@ -30,24 +31,32 @@
         const permissionButton = document.getElementById('permissionButton');
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
+        let lastX = 0, lastY = 0;
 
         function handleMotionEvent(event) {
             let acc = event.accelerationIncludingGravity;
+            let threshold = 2; // Defina um limite para considerar uma aceleração significativa
 
-            if (Math.abs(acc.x) > 1 || Math.abs(acc.y) > 1) {
-                x += acc.x;
-                y -= acc.y;
+            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
+                x += acc.x * 10; // Multiplica para ter uma resposta mais visível
+                y -= acc.y * 10;
 
                 x = Math.max(0, Math.min(window.innerWidth - 50, x));
                 y = Math.max(0, Math.min(window.innerHeight - 50, y));
 
                 circle.style.left = x + 'px';
                 circle.style.top = y + 'px';
+
+                lastX = acc.x;
+                lastY = acc.y;
+            } else if (Math.abs(lastX) < threshold && Math.abs(lastY) < threshold) {
+                // Se o dispositivo estiver em repouso, mantém a posição do círculo
+                circle.style.left = x + 'px';
+                circle.style.top = y + 'px';
             }
         }
 
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
-            // iOS 13+
             permissionButton.style.display = 'block';
             permissionButton.addEventListener('click', () => {
                 DeviceMotionEvent.requestPermission()
@@ -62,7 +71,6 @@
                     .catch(console.error);
             });
         } else {
-            // Não-iOS ou versões mais antigas do iOS
             window.addEventListener('devicemotion', handleMotionEvent);
         }
     </script>
