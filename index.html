@@ -17,6 +17,11 @@
             transition: transform 0.5s;
         }
 
+        #status {
+            color: red;
+            margin-top: 10px;
+        }
+
         #permissionButton {
             display: none;
             margin: 10px auto;
@@ -33,7 +38,14 @@
     <h1>Demonstração Visual do Giroscópio</h1>
     <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
     <div id="box"></div>
+    <p id="status">Movendo...</p>
     <script>
+        var lastAlpha, lastBeta, lastGamma;
+        var isMoving = true;
+        var movementThreshold = 1; // Limiar para considerar que há movimento
+        var movementTimeout = 1000; // Tempo em ms para verificar se está em repouso
+        var movementTimer;
+
         function handleOrientation(event) {
             var alpha = event.alpha;
             var beta = event.beta;
@@ -41,6 +53,28 @@
 
             var box = document.getElementById('box');
             box.style.transform = `rotateZ(${alpha}deg) rotateX(${beta}deg) rotateY(${gamma}deg)`;
+
+            // Verificar movimento
+            if (Math.abs(alpha - lastAlpha) > movementThreshold || 
+                Math.abs(beta - lastBeta) > movementThreshold || 
+                Math.abs(gamma - lastGamma) > movementThreshold) {
+                isMoving = true;
+                updateStatus();
+                clearTimeout(movementTimer);
+                movementTimer = setTimeout(function() {
+                    isMoving = false;
+                    updateStatus();
+                }, movementTimeout);
+            }
+
+            lastAlpha = alpha;
+            lastBeta = beta;
+            lastGamma = gamma;
+        }
+
+        function updateStatus() {
+            var statusElement = document.getElementById('status');
+            statusElement.textContent = isMoving ? "Movendo..." : "Em repouso";
         }
 
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
