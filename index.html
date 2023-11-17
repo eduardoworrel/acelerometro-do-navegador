@@ -1,92 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Interactive Drawing with Sensors</title>
+    <title>Giroscópio Visual Demo</title>
     <style>
-        #canvas {
-            border: 1px solid black;
-            width: 100%;
-            height: 400px;
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
         }
+
+        #box {
+            width: 100px;
+            height: 100px;
+            background-color: blue;
+            margin: 20px auto;
+            border-radius: 10px;
+            transition: transform 0.5s;
+        }
+
         #permissionButton {
-            display: none; /* Inicialmente oculto, mostrado apenas quando necessário */
+            display: none;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <button id="permissionButton">Enable Motion and Orientation</button>
-    <p>Rotate your device to draw. The magnetic direction and ambient light will affect the drawing color.</p>
-
+    <h1>Demonstração Visual do Giroscópio</h1>
+    <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
+    <div id="box"></div>
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const permissionButton = document.getElementById('permissionButton');
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        function handleOrientation(event) {
+            var alpha = event.alpha;
+            var beta = event.beta;
+            var gamma = event.gamma;
 
-        let hue = 0;
-        let lightLevel = 100; // Default light level
-
-        // Map range function
-        function mapRange(value, a, b, c, d) {
-            value = (value - a) / (b - a);
-            return c + value * (d - c);
+            var box = document.getElementById('box');
+            box.style.transform = `rotateZ(${alpha}deg) rotateX(${beta}deg) rotateY(${gamma}deg)`;
         }
 
-        // Draw function
-        function draw(x, y, color) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, 10, 0, 2 * Math.PI);
-            ctx.fill();
-        }
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // Solicitar permissão para usuários do iOS 13+
+            var button = document.getElementById('permissionButton');
+            button.style.display = 'block';
 
-        // Check for iOS 13+ and request permission for sensor access
-        if (typeof DeviceMotionEvent.requestPermission === 'function') {
-            permissionButton.style.display = 'block';
-            permissionButton.addEventListener('click', () => {
-                DeviceMotionEvent.requestPermission()
-                    .then(response => {
-                        if (response === 'granted') {
-                            startSensorEvents();
+            button.addEventListener('click', function() {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation, true);
                         }
-                        permissionButton.style.display = 'none';
                     })
                     .catch(console.error);
+                this.style.display = 'none';
             });
         } else {
-            // For non-iOS 13+ devices
-            startSensorEvents();
-        }
-
-        function startSensorEvents() {
-            // Handle device orientation
-            window.addEventListener('deviceorientation', event => {
-                const { alpha, beta, gamma } = event;
-                const x = mapRange(gamma, -90, 90, 0, canvas.width);
-                const y = mapRange(beta, -90, 90, 0, canvas.height);
-                draw(x, y, `hsl(${hue}, 100%, ${lightLevel}%)`);
-            });
-
-            // Update color based on magnetic orientation
-            window.addEventListener('compassneedscalibration', event => {
-                event.preventDefault();
-                hue = (hue + 5) % 360;
-            });
-
-            // Ambient light sensor (works only in some browsers)
-            if ('AmbientLightSensor' in window) {
-                try {
-                    const sensor = new AmbientLightSensor();
-                    sensor.addEventListener('reading', () => {
-                        lightLevel = sensor.illuminance;
-                    });
-                    sensor.start();
-                } catch (e) {
-                    console.log('AmbientLightSensor not supported');
-                }
-            }
+            // Para dispositivos não iOS 13+
+            window.addEventListener('deviceorientation', handleOrientation, true);
         }
     </script>
 </body>
