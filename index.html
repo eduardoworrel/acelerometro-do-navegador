@@ -11,7 +11,6 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            transition: left 0.5s, top 0.5s;
         }
         #permissionButton {
             display: none;
@@ -31,14 +30,20 @@
         const permissionButton = document.getElementById('permissionButton');
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
+        let velocityX = 0, velocityY = 0;
+        let lastTime;
 
         function handleMotionEvent(event) {
-            let acc = event.acceleration;
-            let threshold = 3; // Aumenta o limite para considerar apenas movimentos mais fortes
+            const acc = event.acceleration;
+            const currentTime = new Date().getTime();
 
-            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
-                x += acc.x; // Ajusta a escala de movimento conforme necessário
-                y -= acc.y;
+            if (lastTime) {
+                const timeDiff = (currentTime - lastTime) / 1000; // Converte para segundos
+                velocityX += acc.x * timeDiff;
+                velocityY += acc.y * timeDiff;
+
+                x += velocityX * timeDiff * 50; // Multiplicador para ajustar a escala de movimento
+                y -= velocityY * timeDiff * 50;
 
                 x = Math.max(0, Math.min(window.innerWidth - 50, x));
                 y = Math.max(0, Math.min(window.innerHeight - 50, y));
@@ -46,6 +51,8 @@
                 circle.style.left = x + 'px';
                 circle.style.top = y + 'px';
             }
+
+            lastTime = currentTime;
         }
 
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
