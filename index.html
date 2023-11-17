@@ -6,16 +6,16 @@
         body {
             margin: 0;
             height: 100vh;
-            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             background-color: #f0f0f0;
         }
 
         #box {
-            width: 50vmin; /* 50% da menor dimensão da viewport */
-            height: 50vmin;
+            width: 100px;
+            height: 100px;
             background-color: blue;
-            position: absolute;
-            will-change: transform, background-color;
             transition: transform 0.5s, background-color 0.5s;
         }
 
@@ -37,23 +37,22 @@
     <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
     <div id="box"></div>
     <script>
-        var centerX = window.innerWidth / 2;
-        var centerY = window.innerHeight / 2;
-        var movementScale = 10; // Escala de movimento do quadrado
-
         function handleOrientation(event) {
             var alpha = event.alpha;
             var beta = event.beta;
             var gamma = event.gamma;
 
-            // Calcular nova posição
-            var posX = centerX + gamma * movementScale;
-            var posY = centerY + beta * movementScale;
+            // Transformações baseadas em alpha, beta e gamma
+            var scale = 1 + beta / 180; // Escalar com base em beta
+            var rotateX = `rotateX(${beta}deg)`;
+            var rotateY = `rotateY(${gamma}deg)`;
+            var rotateZ = `rotateZ(${alpha}deg)`;
 
-            // Atualizar posição e cor do quadrado
+            // Aplicar transformações
             var box = document.getElementById('box');
-            box.style.transform = `translate(${posX}px, ${posY}px)`;
+            box.style.transform = `${rotateX} ${rotateY} ${rotateZ} scale(${scale})`;
 
+            // Mudança de cor
             var red = Math.abs(Math.round(alpha)) % 256;
             var green = Math.abs(Math.round(beta)) % 256;
             var blue = Math.abs(Math.round(gamma)) % 256;
@@ -77,11 +76,6 @@
         } else {
             window.addEventListener('deviceorientation', handleOrientation, true);
         }
-
-        window.addEventListener('resize', function() {
-            centerX = window.innerWidth / 2;
-            centerY = window.innerHeight / 2;
-        });
     </script>
 </body>
 </html>
