@@ -38,7 +38,7 @@
             const acc = event.accelerationIncludingGravity;
             const deltaX = acc.x - lastAcceleration.x;
             const deltaY = acc.y - lastAcceleration.y;
-            const threshold = 5; // Limiar para detectar movimento significativo
+            const threshold = 2; // Limiar para detectar movimento significativo
 
             if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
                 moving = true;
