@@ -1,39 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Device Motion Example</title>
+    <title>Interactive Drawing with Sensors</title>
     <style>
-        #circle {
-            width: 50px;
-            height: 50px;
-            background-color: blue;
-            border-radius: 50%;
-            position: absolute;
-            left: 50%;
-            top: 50%;
+        #canvas {
+            border: 1px solid black;
+            width: 100%;
+            height: 400px;
         }
     </style>
 </head>
 <body>
-    <div id="circle"></div>
+    <canvas id="canvas"></canvas>
+    <p>Rotate your device to draw. The magnetic direction and ambient light will affect the drawing color.</p>
 
     <script>
-        const circle = document.getElementById('circle');
-        let x = window.innerWidth / 2, y = window.innerHeight / 2;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
 
-        window.addEventListener('devicemotion', (event) => {
-            const acc = event.accelerationIncludingGravity;
+        let hue = 0;
+        let lightLevel = 100; // Default light level
 
-            // Ajuste estes valores conforme necessário
-            x += acc.x * 0.1;
-            y -= acc.y * 0.1;
+        // Handle device orientation
+        window.addEventListener('deviceorientation', event => {
+            const { alpha, beta, gamma } = event;
 
-            x = Math.max(0, Math.min(window.innerWidth - 50, x));
-            y = Math.max(0, Math.min(window.innerHeight - 50, y));
+            // Use gamma for horizontal movement, beta for vertical
+            const x = mapRange(gamma, -90, 90, 0, canvas.width);
+            const y = mapRange(beta, -90, 90, 0, canvas.height);
 
-            circle.style.left = `${x}px`;
-            circle.style.top = `${y}px`;
+            draw(x, y, `hsl(${hue}, 100%, ${lightLevel}%)`);
         });
+
+        // Map range function
+        function mapRange(value, a, b, c, d) {
+            value = (value - a) / (b - a);
+            return c + value * (d - c);
+        }
+
+        // Draw function
+        function draw(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // Update color based on magnetic orientation
+        window.addEventListener('compassneedscalibration', event => {
+            event.preventDefault();
+            hue = (hue + 5) % 360;
+        });
+
+        // Attempt to access ambient light sensor (works only in some browsers)
+        if ('AmbientLightSensor' in window) {
+            try {
+                const sensor = new AmbientLightSensor();
+                sensor.addEventListener('reading', () => {
+                    lightLevel = sensor.illuminance;
+                });
+                sensor.start();
+            } catch (e) {
+                console.log('AmbientLightSensor not supported');
+            }
+        }
     </script>
 </body>
 </html>
