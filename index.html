@@ -11,7 +11,7 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            transition: left 0.2s, top 0.2s;
+            transition: transform 0.1s linear;
         }
         #permissionButton {
             display: none;
@@ -29,38 +29,19 @@
     <script>
         const circle = document.getElementById('circle');
         const permissionButton = document.getElementById('permissionButton');
-        let x = window.innerWidth / 2;
-        let y = window.innerHeight / 2;
-        let lastAcceleration = { x: 0, y: 0 };
-        let moving = false;
+        let x = 0;
+        let y = 0;
 
         function handleMotionEvent(event) {
-            const acc = event.accelerationIncludingGravity;
-            const deltaX = acc.x - lastAcceleration.x;
-            const deltaY = acc.y - lastAcceleration.y;
-            const threshold = 2; // Limiar para detectar movimento significativo
+            const acc = event.acceleration;
+            const threshold = 1; // Limiar de sensibilidade de movimento
 
-            if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
-                moving = true;
+            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
+                x += acc.x;
+                y -= acc.y;
+
+                circle.style.transform = `translate(${x}px, ${y}px)`;
             }
-
-            if (moving) {
-                x += deltaX * 2; // Ajuste o fator multiplicador conforme necessário
-                y -= deltaY * 2;
-
-                x = Math.max(0, Math.min(window.innerWidth - 50, x));
-                y = Math.max(0, Math.min(window.innerHeight - 50, y));
-
-                circle.style.left = x + 'px';
-                circle.style.top = y + 'px';
-
-                // Diminuir a velocidade do movimento
-                if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
-                    moving = false;
-                }
-            }
-
-            lastAcceleration = { x: acc.x, y: acc.y };
         }
 
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
