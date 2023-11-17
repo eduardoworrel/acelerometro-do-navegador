@@ -1,114 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Velocidade com Média Móvel por Eixo</title>
+    <title>Motion-Based Circle Movement</title>
+    <style>
+        #circle {
+            width: 50px;
+            height: 50px;
+            background-color: blue;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+        }
+        #permissionButton {
+            display: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+    </style>
 </head>
 <body>
-    <br>
-    <h1 id="heading">0°</h1>
-    <br>
-    <h1 id="velocityZ">Velocidade Z: 0 m/s</h1>
-    <br>
-    <button id="startButton">Iniciar Captura de Movimento</button>
+    <div id="circle"></div>
+    <button id="permissionButton">Enable Motion</button>
 
     <script>
-        let velocities = { x: 0, y: 0, z: 0 };
-        let lastTime = Date.now();
-        const accValues = { x: [], y: [], z: [] };
-        const N = 10; // Número de amostras para a média móvel
-        const movementThreshold = 0.1; // Limiar para detectar movimento significativo
-        const stationaryTimeLimit = 0.3; // Tempo para considerar parado
-        let stationaryTime = { x: 0, y: 0, z: 0 };
-
-        function addAccValue(axis, value) {
-            accValues[axis].push(value);
-            if (accValues[axis].length > N) {
-                accValues[axis].shift(); // Remove o valor mais antigo
-            }
-        }
-
-        function calculateAverage(axis) {
-            if (accValues[axis].length === 0) return 0;
-            return accValues[axis].reduce((sum, val) => sum + val, 0) / accValues[axis].length;
-        }
-
-        function updateVelocity(ax, ay, az) {
-            let currentTime = Date.now();
-            let deltaTime = (currentTime - lastTime) / 1000; // Tempo em segundos
-            lastTime = currentTime;
-
-            // Adiciona os valores atuais e calcula a média para cada eixo
-            addAccValue('x', ax);
-            addAccValue('y', ay);
-            addAccValue('z', az);
-            let avgAx = calculateAverage('x');
-            let avgAy = calculateAverage('y');
-            let avgAz = calculateAverage('z');
-
-            ['x', 'y', 'z'].forEach(axis => {
-                let avgA = axis === 'x' ? avgAx : axis === 'y' ? avgAy : avgAz;
-
-                if (Math.abs(avgA) < movementThreshold) {
-                    stationaryTime[axis] += deltaTime;
-                    if (stationaryTime[axis] >= stationaryTimeLimit) {
-                        velocities[axis] = 0; // Resetar a velocidade se estiver parado
-                    }
-                } else {
-                    stationaryTime[axis] = 0; // Resetar o tempo estacionário se houver movimento
-                    velocities[axis] += avgA * deltaTime; // Calcular a velocidade
-                }
-            });
-
-            document.getElementById('velocityZ').textContent = `Velocidade Z: ${velocities.z.toFixed(2)} m/s`;
-        }
+        const circle = document.getElementById('circle');
+        const permissionButton = document.getElementById('permissionButton');
+        let x = window.innerWidth / 2;
+        let y = window.innerHeight / 2;
 
         function handleMotionEvent(event) {
-            updateVelocity(event.acceleration.x, event.acceleration.y, event.acceleration.z);
-        }
+            let acc = event.accelerationIncludingGravity;
 
-        function initSensor() {
-            if ('LinearAccelerationSensor' in window) {
-                const sensor = new LinearAccelerationSensor();
-                sensor.addEventListener('reading', () => updateVelocity(sensor.x, sensor.y, sensor.z));
-                sensor.start();
-            } else if ('DeviceMotionEvent' in window) {
-                window.addEventListener('devicemotion', handleMotionEvent);
-            } else {
-                alert('Sensores de movimento não são suportados neste dispositivo.');
+            if (Math.abs(acc.x) > 1 || Math.abs(acc.y) > 1) {
+                x += acc.x;
+                y -= acc.y;
+
+                x = Math.max(0, Math.min(window.innerWidth - 50, x));
+                y = Math.max(0, Math.min(window.innerHeight - 50, y));
+
+                circle.style.left = x + 'px';
+                circle.style.top = y + 'px';
             }
         }
 
-        document.getElementById('startButton').addEventListener('click', function() {
-            if (window.DeviceOrientationEvent) {
-                window.addEventListener('deviceorientation', handleOrientation, false);
-            } else {
-                alert("Orientação do dispositivo não suportada");
-            }
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                // Para iOS 13+
-                DeviceMotionEvent.requestPermission().then(permissionState => {
-                    if (permissionState === 'granted') {
-                        initSensor();
-                    } else {
-                        alert('Permissão para acessar os sensores negada.');
-                    }
-                }).catch(console.error);
-            } else {
-                // Para outros navegadores
-                initSensor();
-            }
-        });
-
-
-        function handleOrientation(event) {
-            // Obtém o ângulo de orientação em graus em relação ao norte verdadeiro
-            var absolute = event.absolute;
-            var alpha = event.alpha;
-
-            // Atualiza o elemento HTML com o ângulo de orientação
-            document.getElementById('heading').textContent = `${Math.round(alpha)}°`;
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            // iOS 13+
+            permissionButton.style.display = 'block';
+            permissionButton.addEventListener('click', () => {
+                DeviceMotionEvent.requestPermission()
+                    .then(response => {
+                        if (response == 'granted') {
+                            window.addEventListener('devicemotion', handleMotionEvent);
+                            permissionButton.style.display = 'none';
+                        } else {
+                            alert("Permission not granted");
+                        }
+                    })
+                    .catch(console.error);
+            });
+        } else {
+            // Não-iOS ou versões mais antigas do iOS
+            window.addEventListener('devicemotion', handleMotionEvent);
         }
     </script>
 </body>
