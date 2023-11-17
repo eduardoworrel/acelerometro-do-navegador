@@ -1,70 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Motion-Based Circle Movement</title>
+    <title>Linear Acceleration Sensor Example</title>
     <style>
         #circle {
             width: 50px;
             height: 50px;
-            background-color: red;
+            background-color: rgb(181, 39, 166);
             border-radius: 50%;
             position: absolute;
-            left: 0;
-            top: 0;
-            transition: transform 0.1s linear;
-        }
-        #permissionButton {
-            display: none;
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
+            left: 50%;
+            top: 50%;
         }
     </style>
 </head>
 <body>
     <div id="circle"></div>
-    <button id="permissionButton">Enable Motion</button>
 
     <script>
-        const circle = document.getElementById('circle');
-        const permissionButton = document.getElementById('permissionButton');
-        let x = 0, y = 0;
+        if ('LinearAccelerationSensor' in window) {
+            const circle = document.getElementById('circle');
+            let x = window.innerWidth / 2, y = window.innerHeight / 2;
+            const sensor = new LinearAccelerationSensor({frequency: 60});
 
-        function handleMotionEvent(event) {
-            const acc = event.accelerationIncludingGravity;
-            const threshold = 2; // Limiar para detectar movimentos significativos
+            sensor.addEventListener('reading', () => {
+                // Ajuste estes valores conforme necessário
+                x += sensor.x * 0.1;
+                y -= sensor.y * 0.1;
 
-            // Verifica se a aceleração excede um limiar mínimo
-            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
-                // Atualiza a posição com base na aceleração
-                x += acc.x;
-                y -= acc.y;
+                x = Math.max(0, Math.min(window.innerWidth - 50, x));
+                y = Math.max(0, Math.min(window.innerHeight - 50, y));
 
-                // Assegura que a posição do círculo fique dentro dos limites da tela
-                x = Math.max(-window.innerWidth / 2, Math.min(window.innerWidth / 2, x));
-                y = Math.max(-window.innerHeight / 2, Math.min(window.innerHeight / 2, y));
-
-                circle.style.transform = `translate(${x}px, ${y}px)`;
-            }
-        }
-
-        if (typeof DeviceMotionEvent.requestPermission === 'function') {
-            permissionButton.style.display = 'block';
-            permissionButton.addEventListener('click', () => {
-                DeviceMotionEvent.requestPermission()
-                    .then(response => {
-                        if (response == 'granted') {
-                            window.addEventListener('devicemotion', handleMotionEvent);
-                            permissionButton.style.display = 'none';
-                        } else {
-                            alert("Permission not granted");
-                        }
-                    })
-                    .catch(console.error);
+                circle.style.left = `${x}px`;
+                circle.style.top = `${y}px`;
             });
+
+            sensor.start();
         } else {
-            window.addEventListener('devicemotion', handleMotionEvent);
+            console.log("LinearAccelerationSensor is not supported by your browser.");
         }
     </script>
 </body>
