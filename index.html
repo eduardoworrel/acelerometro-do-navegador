@@ -4,81 +4,63 @@
     <title>Giroscópio Visual Demo</title>
     <style>
         body {
-            text-align: center;
-            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f0f0f0;
         }
 
         #box {
-            width: 100px;
-            height: 100px;
+            width: 50vmin; /* 50% da menor dimensão da viewport */
+            height: 50vmin;
             background-color: blue;
-            margin: 20px auto;
-            border-radius: 10px;
-            transition: transform 0.5s;
-        }
-
-        #status {
-            color: red;
-            margin-top: 10px;
+            position: absolute;
+            will-change: transform, background-color;
+            transition: transform 0.5s, background-color 0.5s;
         }
 
         #permissionButton {
             display: none;
-            margin: 10px auto;
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            position: fixed;
+            top: 10px;
+            right: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Demonstração Visual do Giroscópio</h1>
     <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
     <div id="box"></div>
-    <p id="status">Movendo...</p>
     <script>
-        var lastAlpha, lastBeta, lastGamma;
-        var isMoving = true;
-        var movementThreshold = 1; // Limiar para considerar que há movimento
-        var movementTimeout = 1000; // Tempo em ms para verificar se está em repouso
-        var movementTimer;
+        var centerX = window.innerWidth / 2;
+        var centerY = window.innerHeight / 2;
+        var movementScale = 10; // Escala de movimento do quadrado
 
         function handleOrientation(event) {
             var alpha = event.alpha;
             var beta = event.beta;
             var gamma = event.gamma;
 
+            // Calcular nova posição
+            var posX = centerX + gamma * movementScale;
+            var posY = centerY + beta * movementScale;
+
+            // Atualizar posição e cor do quadrado
             var box = document.getElementById('box');
-            box.style.transform = `rotateZ(${alpha}deg) rotateX(${beta}deg) rotateY(${gamma}deg)`;
+            box.style.transform = `translate(${posX}px, ${posY}px)`;
 
-            // Verificar movimento
-            if (Math.abs(alpha - lastAlpha) > movementThreshold || 
-                Math.abs(beta - lastBeta) > movementThreshold || 
-                Math.abs(gamma - lastGamma) > movementThreshold) {
-                isMoving = true;
-                updateStatus();
-                clearTimeout(movementTimer);
-                movementTimer = setTimeout(function() {
-                    isMoving = false;
-                    updateStatus();
-                }, movementTimeout);
-            }
-
-            lastAlpha = alpha;
-            lastBeta = beta;
-            lastGamma = gamma;
-        }
-
-        function updateStatus() {
-            var statusElement = document.getElementById('status');
-            statusElement.textContent = isMoving ? "Movendo..." : "Em repouso";
+            var red = Math.abs(Math.round(alpha)) % 256;
+            var green = Math.abs(Math.round(beta)) % 256;
+            var blue = Math.abs(Math.round(gamma)) % 256;
+            box.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
         }
 
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // Solicitar permissão para usuários do iOS 13+
             var button = document.getElementById('permissionButton');
             button.style.display = 'block';
 
@@ -93,9 +75,13 @@
                 this.style.display = 'none';
             });
         } else {
-            // Para dispositivos não iOS 13+
             window.addEventListener('deviceorientation', handleOrientation, true);
         }
+
+        window.addEventListener('resize', function() {
+            centerX = window.innerWidth / 2;
+            centerY = window.innerHeight / 2;
+        });
     </script>
 </body>
 </html>
