@@ -31,26 +31,18 @@
         const permissionButton = document.getElementById('permissionButton');
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
-        let lastX = 0, lastY = 0;
 
         function handleMotionEvent(event) {
-            let acc = event.accelerationIncludingGravity;
-            let threshold = 2; // Defina um limite para considerar uma aceleração significativa
+            let acc = event.acceleration;
+            let threshold = 5; // Aumenta o limite para considerar apenas movimentos mais fortes
 
             if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
-                x += acc.x * 10; // Multiplica para ter uma resposta mais visível
-                y -= acc.y * 10;
+                x += acc.x; // Ajusta a escala de movimento conforme necessário
+                y -= acc.y;
 
                 x = Math.max(0, Math.min(window.innerWidth - 50, x));
                 y = Math.max(0, Math.min(window.innerHeight - 50, y));
 
-                circle.style.left = x + 'px';
-                circle.style.top = y + 'px';
-
-                lastX = acc.x;
-                lastY = acc.y;
-            } else if (Math.abs(lastX) < threshold && Math.abs(lastY) < threshold) {
-                // Se o dispositivo estiver em repouso, mantém a posição do círculo
                 circle.style.left = x + 'px';
                 circle.style.top = y + 'px';
             }
