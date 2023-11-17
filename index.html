@@ -40,8 +40,8 @@
 
             if (changeInAccelerationX > threshold || changeInAccelerationY > threshold) {
                 // Mover o círculo proporcionalmente à mudança na aceleração
-                x += changeInAccelerationX * 2;
-                y -= changeInAccelerationY * 2;
+                x += changeInAccelerationX * 10;
+                y -= changeInAccelerationY * 10;
 
                 // Restringe a posição dentro da janela
                 x = Math.max(0, Math.min(window.innerWidth - 50, x));
@@ -52,4 +52,26 @@
             }
 
             // Atualizar a última aceleração
-            lastAcceleration = { x
+            lastAcceleration = { x: acc.x, y: acc.y };
+        }
+
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            permissionButton.style.display = 'block';
+            permissionButton.addEventListener('click', () => {
+                DeviceMotionEvent.requestPermission()
+                    .then(response => {
+                        if (response == 'granted') {
+                            window.addEventListener('devicemotion', handleMotionEvent, true);
+                            permissionButton.style.display = 'none';
+                        } else {
+                            alert("Permission not granted");
+                        }
+                    })
+                    .catch(console.error);
+            });
+        } else {
+            window.addEventListener('devicemotion', handleMotionEvent, true);
+        }
+    </script>
+</body>
+</html>
