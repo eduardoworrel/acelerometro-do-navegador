@@ -6,11 +6,11 @@
         #circle {
             width: 50px;
             height: 50px;
-            background-color: blue;
+            background-color: red;
             border-radius: 50%;
             position: absolute;
-            left: 50%;
-            top: 50%;
+            left: 0;
+            top: 0;
             transition: transform 0.1s linear;
         }
         #permissionButton {
@@ -29,16 +29,21 @@
     <script>
         const circle = document.getElementById('circle');
         const permissionButton = document.getElementById('permissionButton');
-        let x = 0;
-        let y = 0;
+        let x = 0, y = 0;
 
         function handleMotionEvent(event) {
-            const acc = event.acceleration;
-            const threshold = 1; // Limiar de sensibilidade de movimento
+            const acc = event.accelerationIncludingGravity;
+            const threshold = 2; // Limiar para detectar movimentos significativos
 
+            // Verifica se a aceleração excede um limiar mínimo
             if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
+                // Atualiza a posição com base na aceleração
                 x += acc.x;
                 y -= acc.y;
+
+                // Assegura que a posição do círculo fique dentro dos limites da tela
+                x = Math.max(-window.innerWidth / 2, Math.min(window.innerWidth / 2, x));
+                y = Math.max(-window.innerHeight / 2, Math.min(window.innerHeight / 2, y));
 
                 circle.style.transform = `translate(${x}px, ${y}px)`;
             }
