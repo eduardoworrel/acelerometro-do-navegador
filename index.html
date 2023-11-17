@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Linear Acceleration Sensor Example</title>
+    <title>Device Motion Example</title>
     <style>
         #circle {
             width: 50px;
             height: 50px;
-            background-color: rgb(181, 39, 166);
+            background-color: blue;
             border-radius: 50%;
             position: absolute;
             left: 50%;
@@ -18,27 +18,22 @@
     <div id="circle"></div>
 
     <script>
-        if ('LinearAccelerationSensor' in window) {
-            const circle = document.getElementById('circle');
-            let x = window.innerWidth / 2, y = window.innerHeight / 2;
-            const sensor = new LinearAccelerationSensor({frequency: 60});
+        const circle = document.getElementById('circle');
+        let x = window.innerWidth / 2, y = window.innerHeight / 2;
 
-            sensor.addEventListener('reading', () => {
-                // Ajuste estes valores conforme necessário
-                x += sensor.x * 0.1;
-                y -= sensor.y * 0.1;
+        window.addEventListener('devicemotion', (event) => {
+            const acc = event.accelerationIncludingGravity;
 
-                x = Math.max(0, Math.min(window.innerWidth - 50, x));
-                y = Math.max(0, Math.min(window.innerHeight - 50, y));
+            // Ajuste estes valores conforme necessário
+            x += acc.x * 0.1;
+            y -= acc.y * 0.1;
 
-                circle.style.left = `${x}px`;
-                circle.style.top = `${y}px`;
-            });
+            x = Math.max(0, Math.min(window.innerWidth - 50, x));
+            y = Math.max(0, Math.min(window.innerHeight - 50, y));
 
-            sensor.start();
-        } else {
-            console.log("LinearAccelerationSensor is not supported by your browser.");
-        }
+            circle.style.left = `${x}px`;
+            circle.style.top = `${y}px`;
+        });
     </script>
 </body>
 </html>
