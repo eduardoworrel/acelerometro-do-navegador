@@ -31,28 +31,32 @@
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
         let velocityX = 0, velocityY = 0;
-        let lastTime;
+        const friction = 0.95; // Fator de atrito para desacelerar o círculo
 
         function handleMotionEvent(event) {
-            const acc = event.acceleration;
-            const currentTime = new Date().getTime();
+            const acc = event.accelerationIncludingGravity;
+            const threshold = 2; // Limiar para detectar movimento significativo
 
-            if (lastTime) {
-                const timeDiff = (currentTime - lastTime) / 1000; // Converte para segundos
-                velocityX += acc.x * timeDiff;
-                velocityY += acc.y * timeDiff;
-
-                x += velocityX * timeDiff * 50; // Multiplicador para ajustar a escala de movimento
-                y -= velocityY * timeDiff * 50;
-
-                x = Math.max(0, Math.min(window.innerWidth - 50, x));
-                y = Math.max(0, Math.min(window.innerHeight - 50, y));
-
-                circle.style.left = x + 'px';
-                circle.style.top = y + 'px';
+            // Aplica o movimento apenas se a aceleração for significativa
+            if (Math.abs(acc.x) > threshold || Math.abs(acc.y) > threshold) {
+                velocityX += acc.x;
+                velocityY += acc.y;
             }
 
-            lastTime = currentTime;
+            // Aplica atrito para desacelerar gradualmente
+            velocityX *= friction;
+            velocityY *= friction;
+
+            // Atualiza a posição
+            x += velocityX;
+            y -= velocityY;
+
+            // Restringe a posição dentro da janela
+            x = Math.max(0, Math.min(window.innerWidth - 50, x));
+            y = Math.max(0, Math.min(window.innerHeight - 50, y));
+
+            circle.style.left = x + 'px';
+            circle.style.top = y + 'px';
         }
 
         if (typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -61,7 +65,7 @@
                 DeviceMotionEvent.requestPermission()
                     .then(response => {
                         if (response == 'granted') {
-                            window.addEventListener('devicemotion', handleMotionEvent);
+                            window.addEventListener('devicemotion', handleMotionEvent, true);
                             permissionButton.style.display = 'none';
                         } else {
                             alert("Permission not granted");
@@ -70,7 +74,7 @@
                     .catch(console.error);
             });
         } else {
-            window.addEventListener('devicemotion', handleMotionEvent);
+            window.addEventListener('devicemotion', handleMotionEvent, true);
         }
     </script>
 </body>
