@@ -9,6 +9,8 @@
     <style>
         canvas { background: black; display: block; margin: 0 auto; }
     </style>
+
+<button id="startButton">Iniciar Jogo</button>
     <canvas id="gameCanvas"></canvas>
     <script>
         class Nave {
@@ -99,8 +101,10 @@
         window.addEventListener('deviceorientation', handleOrientation, true);
         updateGame();
     }
-
-    requestDeviceOrientationPermission(startGame);
+    startButton.addEventListener('click', function() {
+        startButton.style.display = 'none'; // Esconde o botão após o início
+        requestDeviceOrientationPermission(startGame);
+    });
 });
 
     </script>
