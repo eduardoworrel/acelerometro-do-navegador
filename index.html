@@ -95,13 +95,12 @@
             } else {
                 alert("Seu dispositivo não suporta orientação.");
             }
-            startButton.style.display = 'none';
-           
+            
             updateGame();
         }
     
         function handleOrientation(event) {
-            anguloDeTiro = event.alpha;
+            anguloDeTiro = event.alpha - 90;
             tiros.push(new Tiro(anguloDeTiro));
         }
     
