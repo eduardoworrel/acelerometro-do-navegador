@@ -67,47 +67,41 @@
 
     </script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-        let anguloInicial = null;
-        let anguloDeTiro = 0;
-        const tiros = [];
-        const nave = new Nave();
+    let anguloDeTiro = 0;
+    const tiros = [];
+    const nave = new Nave();
 
-        function updateGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            nave.draw(ctx);
-            tiros.forEach((tiro, index) => {
-                tiro.move();
-                tiro.draw(ctx);
-                if (tiro.x < 0 || tiro.x > canvas.width || tiro.y < 0 || tiro.y > canvas.height) {
-                    tiros.splice(index, 1);
-                }
-            });
-            requestAnimationFrame(updateGame);
-        }
-
-        function handleOrientation(event) {
-            if (anguloInicial === null) {
-                anguloInicial = event.alpha;
+    function updateGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        nave.draw(ctx);
+        tiros.forEach((tiro, index) => {
+            tiro.move();
+            tiro.draw(ctx);
+            if (tiro.x < 0 || tiro.x > canvas.width || tiro.y < 0 || tiro.y > canvas.height) {
+                tiros.splice(index, 1);
             }
-            
-            let anguloAjustado = event.alpha - anguloInicial;
-            anguloDeTiro = anguloAjustado < 0 ? anguloAjustado + 360 : anguloAjustado;
-            tiros.push(new Tiro(anguloDeTiro));
-        }
+        });
+        requestAnimationFrame(updateGame);
+    }
 
-        function startGame() {
-            window.addEventListener('deviceorientation', handleOrientation, true);
-            updateGame();
-        }
+    function handleOrientation(event) {
+        anguloDeTiro = event.alpha;
+        tiros.push(new Tiro(anguloDeTiro));
+    }
 
-        requestDeviceOrientationPermission(startGame);
-    });
+    function startGame() {
+        window.addEventListener('deviceorientation', handleOrientation, true);
+        updateGame();
+    }
+
+    requestDeviceOrientationPermission(startGame);
+});
 
     </script>
 </body>
