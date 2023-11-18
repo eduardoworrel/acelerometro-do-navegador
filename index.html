@@ -9,104 +9,102 @@
     <style>
         canvas { background: black; display: block; margin: 0 auto; }
     </style>
-
-<button id="startButton">Iniciar Jogo</button>
     <canvas id="gameCanvas"></canvas>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    
+        let anguloDeTiro = 0;
+        const tiros = [];
+    
         class Nave {
             constructor() {
                 this.x = canvas.width / 2;
                 this.y = canvas.height / 2;
                 this.size = 30;
             }
-
-            draw(ctx) {
+    
+            draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = 'blue';
                 ctx.fill();
             }
         }
-    </script>
-    <script>
+    
         class Tiro {
-    constructor(angulo) {
-        this.x = canvas.width / 2;
-        this.y = canvas.height / 2;
-        this.velocidade = 5;
-        this.angulo = angulo;
-        this.raio = 5;
-    }
-
-    move() {
-        this.x += this.velocidade * Math.cos(this.angulo * Math.PI / 180);
-        this.y += this.velocidade * Math.sin(this.angulo * Math.PI / 180);
-    }
-
-    draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-    }
-}
-
-    </script>
-    <script>
-        function requestDeviceOrientationPermission(callback) {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(permissionState => {
-            if (permissionState === 'granted') {
-                callback();
+            constructor(angulo) {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.velocidade = 5;
+                this.angulo = angulo;
+                this.raio = 5;
+            }
+    
+            move() {
+                this.x += this.velocidade * Math.cos(this.angulo * Math.PI / 180);
+                this.y += this.velocidade * Math.sin(this.angulo * Math.PI / 180);
+            }
+    
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+            }
+        }
+    
+        const nave = new Nave();
+    
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            nave.draw();
+            tiros.forEach((tiro, index) => {
+                tiro.move();
+                tiro.draw();
+                // Remover tiros que saíram da tela
+                if (tiro.x < 0 || tiro.x > canvas.width || tiro.y < 0 || tiro.y > canvas.height) {
+                    tiros.splice(index, 1);
+                }
+            });
+            requestAnimationFrame(updateGame);
+        }
+    
+        function startGame() {
+            if (window.DeviceOrientationEvent) {
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    // Para iOS 13+
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('deviceorientation', handleOrientation, true);
+                            } else {
+                                alert('Permissão para acessar a orientação do dispositivo negada.');
+                            }
+                        })
+                        .catch(console.error);
+                } else {
+                    // Para navegadores não iOS
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+                }
             } else {
-                alert('Permissão para acessar a orientação do dispositivo negada.');
+                alert("Seu dispositivo não suporta orientação.");
             }
-        }).catch(console.error);
-    } else {
-        callback();
-    }
-}
-
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let anguloDeTiro = 0;
-    const tiros = [];
-    const nave = new Nave();
-
-    function updateGame() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        nave.draw(ctx);
-        tiros.forEach((tiro, index) => {
-            tiro.move();
-            tiro.draw(ctx);
-            if (tiro.x < 0 || tiro.x > canvas.width || tiro.y < 0 || tiro.y > canvas.height) {
-                tiros.splice(index, 1);
-            }
-        });
-        requestAnimationFrame(updateGame);
-    }
-
-    function handleOrientation(event) {
-        anguloDeTiro = event.alpha;
-        tiros.push(new Tiro(anguloDeTiro));
-    }
-
-    function startGame() {
-        window.addEventListener('deviceorientation', handleOrientation, true);
-        updateGame();
-    }
-    startButton.addEventListener('click', function() {
-        startButton.style.display = 'none'; // Esconde o botão após o início
-        requestDeviceOrientationPermission(startGame);
+            updateGame();
+        }
+    
+        function handleOrientation(event) {
+            anguloDeTiro = event.alpha;
+            tiros.push(new Tiro(anguloDeTiro));
+        }
+    
+        // Botão ou algum gatilho para iniciar o jogo
+        // Exemplo: startButton.addEventListener('click', startGame);
+        startGame(); // Iniciar automaticamente para fins de demonstração
     });
-});
-
     </script>
 </body>
 </html>
