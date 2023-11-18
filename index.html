@@ -1,25 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asteroides</title>
-</head>
-<body>
-    <style>
-        canvas { background: black; display: block; margin: 0 auto; }
-    </style>
-    <button id="startButton">Iniciar jogo</button>
-    <canvas id="gameCanvas"></canvas>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
         const startButton = document.getElementById('startButton');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     
-        let anguloDeTiro = 0;
         const tiros = [];
     
         class Nave {
@@ -67,7 +53,6 @@
             tiros.forEach((tiro, index) => {
                 tiro.move();
                 tiro.draw();
-                // Remover tiros que saíram da tela
                 if (tiro.x < 0 || tiro.x > canvas.width || tiro.y < 0 || tiro.y > canvas.height) {
                     tiros.splice(index, 1);
                 }
@@ -75,7 +60,17 @@
             requestAnimationFrame(updateGame);
         }
     
-        function startGame() {
+        function handleOrientation(event) {
+            // Usar beta e gamma para calcular o ângulo
+            const beta = event.beta;  // Inclinação de frente para trás (-180 a 180 graus)
+            const gamma = event.gamma; // Inclinação lateral (-90 a 90 graus)
+    
+            // Calcular o ângulo de tiro com base na inclinação
+            let anguloDeTiro = Math.atan2(gamma, beta) * 180 / Math.PI;
+            tiros.push(new Tiro(anguloDeTiro));
+        }
+    
+        startButton.addEventListener('click', function() {
             if (window.DeviceOrientationEvent) {
                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                     // Para iOS 13+
@@ -95,16 +90,9 @@
             } else {
                 alert("Seu dispositivo não suporta orientação.");
             }
+            startButton.style.display = 'none';
             updateGame();
-        }
-    
-        function handleOrientation(event) {
-            anguloDeTiro = event.alpha;
-            tiros.push(new Tiro(anguloDeTiro));
-        }
-    
-        startButton.addEventListener('click', startGame);
+        });
     });
     </script>
-</body>
-</html>
+    
