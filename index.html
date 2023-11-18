@@ -9,9 +9,11 @@
     <style>
         canvas { background: black; display: block; margin: 0 auto; }
     </style>
+    <button id="startButton">Iniciar jogo</button>
     <canvas id="gameCanvas"></canvas>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+        const startButton = document.getElementById('startButton');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
@@ -101,9 +103,7 @@
             tiros.push(new Tiro(anguloDeTiro));
         }
     
-        // Botão ou algum gatilho para iniciar o jogo
-        // Exemplo: startButton.addEventListener('click', startGame);
-        startGame(); // Iniciar automaticamente para fins de demonstração
+        startButton.addEventListener('click', startGame);
     });
     </script>
 </body>
