@@ -100,7 +100,7 @@
         }
     
         function handleOrientation(event) {
-            anguloDeTiro = event.alpha - 90;
+            anguloDeTiro = -(event.alpha) - 90;
             tiros.push(new Tiro(anguloDeTiro));
         }
     
