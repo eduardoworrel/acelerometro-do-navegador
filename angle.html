@@ -36,7 +36,7 @@
 </head>
 <body>
     <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
-    <img src="assets/tijolo.png" id="box"></div>
+    <div id="box"></div>
     <script>
         var lastUpdate = Date.now();
         var updateInterval = 20; // Atualizar a cada 100 ms
@@ -75,10 +75,10 @@
             box.style.transform = `${rotateX} ${rotateY} ${rotateZ} scale(${scale})`;
 
             // Mudança de cor
-            // var red = Math.abs(Math.round(alpha)) % 256;
-            // var green = Math.abs(Math.round(beta)) % 256;
-            // var blue = Math.abs(Math.round(gamma)) % 256;
-            // box.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+            var red = Math.abs(Math.round(alpha)) % 256;
+            var green = Math.abs(Math.round(beta)) % 256;
+            var blue = Math.abs(Math.round(gamma)) % 256;
+            box.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
         }
 
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
