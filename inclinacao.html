@@ -35,7 +35,7 @@
         }
 
         function handleMotionEvent(event) {
-            var acceleration = event.accelerationIncludingGravity;
+            const acceleration = event.acceleration;
             posX += acceleration.x;
             posY -= acceleration.y;
 
