@@ -49,14 +49,14 @@
             if (now - lastUpdate > updateInterval) {
                 lastUpdate = now;
 
-                // Suavização dos dados
-                var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
-                var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
-                var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
+                // // Suavização dos dados
+                // var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
+                // var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
+                // var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
 
-                currentAlpha = alpha;
-                currentBeta = beta;
-                currentGamma = gamma;
+                // currentAlpha = alpha;
+                // currentBeta = beta;
+                // currentGamma = gamma;
 
                 // Aplicar transformações
                 updateBox(alpha, beta, gamma);
@@ -71,7 +71,6 @@
             var rotateX = `rotateX(${beta}deg)`;
             var rotateY = `rotateY(${gamma}deg)`;
             var rotateZ = `rotateZ(${alpha}deg)`;
-
             box.style.transform = `${rotateX} ${rotateY} ${rotateZ} scale(${scale})`;
 
             // Mudança de cor
