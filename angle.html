@@ -38,29 +38,15 @@
     <button id="permissionButton">Permitir Acesso ao Giroscópio</button>
     <div id="box"></div>
     <script>
-        var lastUpdate = Date.now();
-        var updateInterval = 20; // Atualizar a cada 100 ms
-        var smoothFactor = .8; // Fator de suavização
-
-        var currentAlpha = 0, currentBeta = 0, currentGamma = 0;
+        const updateInterval = 20;
+        let lastUpdate = Date.now();
 
         function handleOrientation(event) {
-            var now = Date.now();
-            if (now - lastUpdate > updateInterval) {
-                lastUpdate = now;
-
-                // // Suavização dos dados
-                // var alpha = currentAlpha + (event.alpha - currentAlpha) * smoothFactor;
-                // var beta = currentBeta + (event.beta - currentBeta) * smoothFactor;
-                // var gamma = currentGamma + (event.gamma - currentGamma) * smoothFactor;
-
-                // currentAlpha = alpha;
-                // currentBeta = beta;
-                // currentGamma = gamma;
-
-                // Aplicar transformações
+            // var now = Date.now();
+            // if (now - lastUpdate > updateInterval) {
+            //     lastUpdate = now;
                 updateBox(event.alpha, event.beta, event.gamma);
-            }
+            // }
         }
 
         function updateBox(alpha, beta, gamma) {
